@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { View, Text, Button, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { useRouter } from "expo-router";
+import { Image } from 'react-native';
 
 const Scene01 = () => {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null); // Track the selected avatar
   const router = useRouter(); // Hook for navigation
 
-  const avatars = ["Cat", "Robot", "Bear", "Unicorn"]; // List of available avatars
+  const avatars = ["Giraffe", "Elephant", "Bear", "Tiger"]; // List of available avatars
 
   const handleAvatarClick = (avatar: string) => {
     setSelectedAvatar(avatar); // Update selected avatar
@@ -34,7 +35,27 @@ const Scene01 = () => {
               selectedAvatar === avatar && styles.selectedAvatar,
             ]}
           >
-            <Text style={styles.avatarText}>{avatar}</Text>
+            {avatar === "Giraffe" ? (
+              <Image
+                source={require("@/assets/images/Giraffe icon.png")}
+                style={{ width: 40, height: 40 }}
+              />
+            ) : avatar === "Elephant" ? (
+              <Image
+                source={require("@/assets/images/Elephant icon.jpeg")}
+                style={{ width: 40, height: 40 }}
+              />
+            ) : avatar === "Bear" ? (
+              <Image
+                source={require("@/assets/images/Bear icon.webp")}
+                style={{ width: 40, height: 40 }}
+              />
+            ) : (
+              <Image
+                source={require("@/assets/images/Tiger icon.png")}
+                style={{ width: 40, height: 40 }}
+              />
+            )}
           </TouchableOpacity>
         ))}
       </View>
