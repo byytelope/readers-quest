@@ -11,6 +11,7 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="scene01" options={{ title: "Scene 1" }} />
       <Tabs.Screen name="scene02" options={{ title: "Scene 2" }} />
+      <Tabs.Screen name="scene04" options={{ title: "Scene 4" }} />
     </Tabs>
   );
 }

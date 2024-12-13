@@ -1,7 +1,10 @@
 import React from "react";
-import { View, Text, Button, StyleSheet, Alert } from "react-native";
+import { View, Text, Button, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import { useNavigation } from 'expo-router';
 
 const Scene02 = () => {
+  const navigation = useNavigation();
+
   const sentences = [
     "The cat is on the mat.",
     "I like ice cream.",
@@ -29,6 +32,9 @@ const Scene02 = () => {
         ))}
       </View>
       <Button title="Finish" onPress={handleFinish} />
+      <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('scene03')}>
+        <Text style={styles.navButtonText}>Go to Emotional Check-In</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -39,6 +45,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
+    backgroundColor: "#fff", // Set background color to white
   },
   title: {
     fontSize: 24,
@@ -65,6 +72,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   boldText: {
+    fontWeight: "bold",
+  },
+  navButton: {
+    marginTop: 20,
+    backgroundColor: "black",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  navButtonText: {
+    color: "white",
+    fontSize: 16,
     fontWeight: "bold",
   },
 });

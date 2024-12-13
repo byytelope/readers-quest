@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
+    backgroundColor: "#fff", // Set the background color to white
   },
   title: {
     fontSize: 24,
@@ -101,5 +102,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
 
 export default Scene01;
