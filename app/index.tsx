@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Pressable } from "react-native";
+import { Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -11,13 +11,6 @@ export default function HomeScreen() {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const avatars = ["Giraffe", "Elephant", "Bear", "Tiger"];
   const router = useRouter();
-  const handleContinue = () => {
-    if (selectedAvatar) {
-      router.push("/simple-sentences");
-    } else {
-      Alert.alert("Select an Avatar", "Please select an avatar to continue!");
-    }
-  };
 
   return (
     <SafeAreaView className="flex-1 items-center px-4 bg-white dark:bg-black">
@@ -60,14 +53,8 @@ export default function HomeScreen() {
       </View>
       <View className="gap-4 w-full">
         <Button
-          text={
-            // !selectedAvatar
-            //   ? "Select an animal"
-            //   : `Enter with ${selectedAvatar}`
-            "Simple Sentences"
-          }
-          onPress={handleContinue}
-          disabled={!selectedAvatar}
+          text="Simple Sentences"
+          onPress={() => router.push("/simple-sentences")}
         />
         <Button text="Story Mode" onPress={() => router.push("/story-mode")} />
         <Button text="Sitemap" onPress={() => router.push("/_sitemap")} />

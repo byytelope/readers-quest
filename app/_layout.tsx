@@ -17,7 +17,6 @@ import "react-native-reanimated";
 
 import "../global.css";
 import Colors from "@/constants/Colors";
-import { View } from "@/components/Themed";
 
 if (Platform.OS === "android") {
   NavigationBar.setPositionAsync("absolute");

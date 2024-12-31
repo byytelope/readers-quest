@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable } from "react-native";
+import { Pressable, View as DefaultView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Button from "@/components/Button";
@@ -99,7 +99,7 @@ export default function StoryModeScreen() {
               >
                 <Text className="font-medium text-lg">{storyTheme.label}</Text>
               </Pressable>
-              <View
+              <DefaultView
                 className={`p-4 border-2 border-stone-300 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 rounded-xl ${selectedTheme === storyTheme.value ? "" : "hidden"}`}
               >
                 <Text className="text-xl font-bold pb-1">
@@ -111,7 +111,7 @@ export default function StoryModeScreen() {
                 <Text className="font-md">
                   {stories[selectedTheme].description}
                 </Text>
-              </View>
+              </DefaultView>
             </View>
           ))}
         </View>
