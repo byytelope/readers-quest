@@ -1,34 +1,45 @@
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import EmotionalCheckInModal from "@/components/EmotionalCheckInModal";
 import SelectButton from "@/components/SelectButton";
-import { View, Text } from "@/components/Themed";
 import TextButton from "@/components/TextButton";
+import { Text, View } from "@/components/Themed";
+import { useAppContext } from "@/utils/appContext";
 
 export default function HomeScreen() {
-  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
-  const sheetRef = useRef<BottomSheetModal>(null);
   const avatars = ["Giraffe", "Elephant", "Bear", "Tiger"];
   const router = useRouter();
+  const sheetRef = useRef<BottomSheetModal>(null);
+  const { state, updateState } = useAppContext();
+
+  useEffect(() => {
+    if (state.frustrated) {
+      sheetRef.current?.present();
+    }
+  }, [state.frustrated]);
 
   return (
     <SafeAreaView className="flex-1 items-center px-4 bg-white dark:bg-black">
       <EmotionalCheckInModal ref={sheetRef} />
       <View className="flex-1 items-center justify-center gap-4">
-        <Text className="text-2xl font-bold">Reader&apos;s Quest</Text>
-        <Text className="text-lg text-center pb-2">
-          Select your avatar and get ready for the adventure!
+        <Text className="text-4xl font-bold text-lime-600 text-center">
+          Reader's Quest
+        </Text>
+        <Text className="text-xl font-medium text-center pb-2">
+          Who do you wanna explore with today?
         </Text>
         <View className="flex-row justify-center gap-2 md:gap-4 lg:gap-8">
           {avatars.map((avatar) => (
             <SelectButton
               key={avatar}
-              onPress={() => setSelectedAvatar(avatar)}
-              active={selectedAvatar == avatar}
+              onPress={() => {
+                updateState("avatar", avatar);
+              }}
+              active={state.avatar === avatar}
             >
               {avatar === "Giraffe" ? (
                 <Image
@@ -55,7 +66,7 @@ export default function HomeScreen() {
           ))}
         </View>
       </View>
-      <View className="gap-4 w-full">
+      <View className="gap-4 w-full px-0 sm:px-24 lg:px-64">
         <TextButton
           text="Simple Sentences"
           onPress={() => router.push("/simple-sentences")}
@@ -63,11 +74,6 @@ export default function HomeScreen() {
         <TextButton
           text="Story Mode"
           onPress={() => router.push("/story-mode")}
-        />
-        <TextButton text="Sitemap" onPress={() => router.push("/_sitemap")} />
-        <TextButton
-          text="Show Modal"
-          onPress={() => sheetRef.current?.present()}
         />
       </View>
     </SafeAreaView>
