@@ -1,19 +1,27 @@
-import { useAudioRecorder, RecordingPresets } from "expo-audio";
-import { useRouter } from "expo-router";
+import { usePreventRemove } from "@react-navigation/native";
+import { Audio } from "expo-av";
+import * as Speech from "expo-speech";
+import { useNavigation, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Text as DefaultText, View as DefaultView } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  Text as DefaultText,
+  View as DefaultView,
+  Pressable,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import Button from "@/components/Button";
+import TextButton from "@/components/TextButton";
 import { Text, View } from "@/components/Themed";
 
 export default function SimpleSentencesScreen() {
   const router = useRouter();
-  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const navigation = useNavigation();
   const [isUploading, setIsUploading] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording>();
   const [retryEligible, setRetryEligible] = useState(false);
+  const [finished, setFinished] = useState(false);
   const [scores, setScores] = useState<number[]>([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
 
@@ -23,27 +31,57 @@ export default function SimpleSentencesScreen() {
     "She has a red balloon.",
   ];
 
+  useEffect(() => {
+    if (currentSentenceIndex === sentences.length) {
+      setFinished(true);
+    }
+  }, [currentSentenceIndex]);
+
+  usePreventRemove(!finished, ({ data }) => {
+    Alert.alert(
+      "Finish reading?",
+      "You will lose your progress if you go back!",
+      [
+        { text: "Stay", style: "cancel", onPress: () => {} },
+        {
+          text: "Finish",
+          style: "destructive",
+          onPress: () => navigation.dispatch(data.action),
+        },
+      ],
+    );
+  });
+
   const handleContinue = () => {
     if (currentSentenceIndex === sentences.length) {
       router.dismissTo("/");
-    } else {
-      if (!retryEligible) {
-        setCurrentSentenceIndex(currentSentenceIndex + 1);
-      } else {
-        setRetryEligible(false);
-      }
     }
   };
 
-  const record = () => {
-    audioRecorder.record();
-    setIsRecording(true);
+  const record = async () => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY,
+      );
+
+      setRecording(recording);
+    } catch (err) {
+      console.error("Failed to start recording", err);
+    }
   };
 
   const stopRecording = async () => {
-    await audioRecorder.stop();
-    setIsRecording(false);
-    await callApi(audioRecorder.uri!);
+    await recording!.stopAndUnloadAsync();
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+    });
+    const uri = recording!.getURI();
+    await callApi(uri!);
+    setRecording(undefined);
   };
 
   const callApi = async (uri: string) => {
@@ -51,6 +89,7 @@ export default function SimpleSentencesScreen() {
       setIsUploading(true);
 
       const fileName = uri.split("/").pop() || "audio.m4a";
+      console.log(fileName);
       const formData = new FormData();
       const audio_file = {
         uri,
@@ -61,7 +100,7 @@ export default function SimpleSentencesScreen() {
       formData.append("audio", audio_file as any);
       formData.append("expected_text", sentences[currentSentenceIndex]);
 
-      const response = await fetch("http://localhost:8000/grade/", {
+      const response = await fetch("http://192.168.100.156:8000/grade/", {
         method: "POST",
         headers: {
           "Content-Type": "multipart/form-data",
@@ -96,43 +135,62 @@ export default function SimpleSentencesScreen() {
       <StatusBar style="light" />
       <View className="gap-4">
         <View className="items-center w-full">
-          <Text className="text-xl p-4 rounded-xl bg-stone-200 dark:bg-stone-800">
-            <Text className="font-bold">
+          <DefaultView className="w-fit flex-row gap-1 items-center justify-center text-xl p-4 rounded-xl bg-transparent border-2 border-stone-300 dark:border-stone-800">
+            <Text className="text-xl font-bold">
               {scores
                 .map((score) => Math.ceil(score * 10))
                 .reduce((i, j) => i + j, 0)}
             </Text>
-            {" points"}
-          </Text>
+            <Text className="text-xl">points</Text>
+          </DefaultView>
         </View>
       </View>
+      <Text className={`text-4xl font-bold ${finished ? "" : "hidden"}`}>
+        Perfect run! Welldone
+      </Text>
       <View className="gap-8 w-full">
         {sentences.map((sentence, i) => (
           <View key={i} className={currentSentenceIndex === i ? "" : "hidden"}>
-            <DefaultText className="text-2xl font-medium text-green-700 dark:text-green-500 pb-4">
+            <DefaultText className="text-2xl font-medium text-lime-700 dark:text-lime-500 pb-4">
               Say:
             </DefaultText>
-            <Text className="font-bold pb-8 text-5xl leading-tight">
-              {sentence}
-            </Text>
-            <DefaultView className="w-24 items-center text-xl p-4 rounded-xl bg-stone-200 dark:bg-stone-800">
-              <Text className="text-2xl font-bold">
-                {`${i + 1} / ${sentences.length}`}
+            <Pressable
+              className="active:bg-stone-200 dark:active:bg-stone-800 rounded-xl mb-8"
+              onPress={() => Speech.speak(sentence, { rate: 0.5 })}
+            >
+              <Text className="font-bold text-5xl leading-tight">
+                {sentence}
               </Text>
-            </DefaultView>
+            </Pressable>
+            <View className="w-full flex-row gap-4">
+              <DefaultView className="w-24 items-center justify-center text-xl p-4 rounded-xl bg-transparent border-2 border-stone-300 dark:border-stone-800">
+                <Text className="text-2xl font-bold">
+                  {`${i + 1} / ${sentences.length}`}
+                </Text>
+              </DefaultView>
+              <Pressable
+                className={`w-24 items-center justify-center flex-1 text-xl p-4 rounded-xl disabled:border-2 border-stone-300 dark:border-stone-800 bg-stone-200 dark:bg-stone-800 disabled:bg-transparent active:bg-stone-300 dark:active:bg-stone-700 group`}
+                onPress={() =>
+                  setCurrentSentenceIndex(currentSentenceIndex + 1)
+                }
+                disabled={currentSentenceIndex === sentences.length}
+              >
+                <DefaultText className="text-xl font-bold text-black dark:text-white group-disabled:text-stone-400">
+                  Skip
+                </DefaultText>
+              </Pressable>
+            </View>
           </View>
         ))}
-        <Button
+        <TextButton
           text={
             currentSentenceIndex === sentences.length
               ? "Finish"
-              : retryEligible
-                ? "Retry"
-                : isRecording
-                  ? "Listening..."
-                  : isUploading
-                    ? "Checking..."
-                    : "Hold to Speak"
+              : recording !== undefined
+                ? "Listening..."
+                : isUploading
+                  ? "Checking..."
+                  : "Hold and Speak"
           }
           onPressIn={
             retryEligible || currentSentenceIndex === sentences.length
@@ -150,7 +208,7 @@ export default function SimpleSentencesScreen() {
               : undefined
           }
           disabled={isUploading}
-          recording={isRecording}
+          recording={recording !== undefined}
         />
       </View>
     </SafeAreaView>

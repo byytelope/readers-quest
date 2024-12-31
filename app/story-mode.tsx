@@ -1,9 +1,10 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, View as DefaultView } from "react-native";
+import { View as DefaultView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import Button from "@/components/Button";
+import SelectButton from "@/components/SelectButton";
+import TextButton from "@/components/TextButton";
 import { View, Text } from "@/components/Themed";
 import { Stories, StoryTheme } from "@/utils/types";
 
@@ -93,14 +94,15 @@ export default function StoryModeScreen() {
         <View className="w-full flex-col gap-4">
           {storyThemes.map((storyTheme) => (
             <View key={storyTheme.value} className="gap-4">
-              <Pressable
-                className={`w-full p-4 border-2 rounded-xl justify-between ${selectedTheme === storyTheme.value ? "border-green-600 dark:border-green-700" : "border-stone-300 dark:border-stone-800 bg-transparent"}`}
+              <SelectButton
+                active={selectedTheme === storyTheme.value}
                 onPress={() => setSelectedTheme(storyTheme.value)}
+                className="w-full !items-start"
               >
                 <Text className="font-medium text-lg">{storyTheme.label}</Text>
-              </Pressable>
+              </SelectButton>
               <DefaultView
-                className={`p-4 border-2 border-stone-300 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 rounded-xl ${selectedTheme === storyTheme.value ? "" : "hidden"}`}
+                className={`p-4 border-2 border-stone-300 dark:border-stone-700 rounded-xl ${selectedTheme === storyTheme.value ? "" : "hidden"}`}
               >
                 <Text className="text-xl font-bold pb-1">
                   {stories[selectedTheme].title}
@@ -116,7 +118,7 @@ export default function StoryModeScreen() {
           ))}
         </View>
       </View>
-      <Button text="Start Reading" onPress={handleStartReading} />
+      <TextButton text="Start Reading" onPress={handleStartReading} />
     </View>
   );
 }

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "readers-quest",
+    "name": "Reader's Quest",
     "slug": "readers-quest",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "readers-quest",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
