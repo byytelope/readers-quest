@@ -1,12 +1,7 @@
 import ReadingScreen from "@/components/ReadingScreen";
+import { sentences } from "@/utils/types";
 
 export default function SimpleSentencesScreen() {
-  const sentences = [
-    "The cat is on the mat.",
-    "I like ice cream.",
-    "She has a red balloon.",
-  ];
-
   return (
     <ReadingScreen
       content={sentences}

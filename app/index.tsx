@@ -41,27 +41,33 @@ export default function HomeScreen() {
               }}
               active={state.avatar === avatar}
             >
-              {avatar === "Giraffe" ? (
-                <Image
-                  source={require("@/assets/images/Giraffe.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-              ) : avatar === "Elephant" ? (
-                <Image
-                  source={require("@/assets/images/Elephant.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-              ) : avatar === "Bear" ? (
-                <Image
-                  source={require("@/assets/images/Bear.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-              ) : (
-                <Image
-                  source={require("@/assets/images/Tiger.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-              )}
+              {avatar === "Giraffe"
+                ? (
+                  <Image
+                    source={require("@/assets/images/Giraffe.png")}
+                    style={{ width: 40, height: 40 }}
+                  />
+                )
+                : avatar === "Elephant"
+                ? (
+                  <Image
+                    source={require("@/assets/images/Elephant.png")}
+                    style={{ width: 40, height: 40 }}
+                  />
+                )
+                : avatar === "Bear"
+                ? (
+                  <Image
+                    source={require("@/assets/images/Bear.png")}
+                    style={{ width: 40, height: 40 }}
+                  />
+                )
+                : (
+                  <Image
+                    source={require("@/assets/images/Tiger.png")}
+                    style={{ width: 40, height: 40 }}
+                  />
+                )}
             </SelectButton>
           ))}
         </View>
@@ -74,6 +80,10 @@ export default function HomeScreen() {
         <TextButton
           text="Story Mode"
           onPress={() => router.push("/story-mode")}
+        />
+        <TextButton
+          text={`Talk to ${state.avatar}`}
+          onPress={() => router.push("/conversation-mode")}
         />
       </View>
     </SafeAreaView>
