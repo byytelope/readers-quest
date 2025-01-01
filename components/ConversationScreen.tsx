@@ -4,14 +4,14 @@ import { Audio } from "expo-av";
 import { useNavigation, useRouter } from "expo-router";
 import * as Speech from "expo-speech";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Text as DefaultText,
+  View as DefaultView,
   Pressable,
   ScrollView,
-  Text as DefaultText,
   useColorScheme,
-  View as DefaultView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -24,6 +24,7 @@ import {
   type Feedback,
   getFriendlyFeedback,
 } from "@/utils/types";
+import LottieView from "lottie-react-native";
 
 interface ConversationScreenProps {
   conversation: ConversationContent;
@@ -46,10 +47,15 @@ export default function ConversationScreen({
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const { state, updateState } = useAppContext();
+  const animationRef = useRef<LottieView>(null);
 
   useEffect(() => {
     if (currentSentenceIndex === conversation.child.length) {
       setMessage("");
+    }
+
+    if (getGrade() >= 0.5) {
+      animationRef.current?.play();
     }
   }, [currentSentenceIndex, conversation.child.length]);
 
@@ -154,15 +160,20 @@ export default function ConversationScreen({
     }
   };
 
-  const getAward = (score: number) => {
-    const _score = score / (conversation.child.length * 10);
-    if (_score > 0.8) {
+  const getGrade = useCallback(() => {
+    const _score = scores.reduce((i, j) => i + j, 0);
+    return _score / (conversation.child.length * 10);
+  }, [scores, conversation]);
+
+  const getAward = () => {
+    const grade = getGrade();
+    if (grade >= 0.8) {
       return { message: "You earned a Gold Award!", emoji: "🎖️" };
     }
-    if (_score > 0.65) {
+    if (grade >= 0.65) {
       return { message: "You earned a Silver Award!", emoji: "🥈" };
     }
-    if (_score > 0.5) {
+    if (grade >= 0.5) {
       return { message: "You earned a Bronze Award!", emoji: "🥉" };
     }
     return { message: "Keep practicing to earn an award!", emoji: "😊" };
@@ -174,11 +185,21 @@ export default function ConversationScreen({
       {currentSentenceIndex === conversation.child.length ? (
         <>
           <View className="gap-4 items-center justify-center flex-1">
-            <Text className="text-6xl pt-2">
-              {getAward(scores.reduce((i, j) => i + j, 0)).emoji}
-            </Text>
+            <LottieView
+              ref={animationRef}
+              source={require("@/assets/lottie/confetti.json")}
+              style={{
+                width: "100%",
+                height: "100%",
+                position: "absolute",
+                backgroundColor: "transparent",
+                display: getGrade() >= 0.5 ? "flex" : "none",
+              }}
+              autoPlay={false}
+            />
+            <Text className="text-6xl pt-2">{getAward().emoji}</Text>
             <Text className="text-4xl font-bold text-center w-full">
-              {getAward(scores.reduce((i, j) => i + j, 0)).message}
+              {getAward().message}
             </Text>
             <Text className="text-2xl text-center">
               Your total score is {scores.reduce((i, j) => i + j, 0)} points.

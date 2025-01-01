@@ -26,7 +26,7 @@ export default function HomeScreen() {
     <SafeAreaView className="flex-1 items-center px-4 bg-white dark:bg-black">
       <EmotionalCheckInModal ref={sheetRef} />
       <View className="flex-1 items-center justify-center gap-4">
-        <Text className="text-4xl font-bold text-lime-600 text-center">
+        <Text className="text-4xl font-black text-lime-600 text-center">
           Reader's Quest
         </Text>
         <Text className="text-xl font-medium text-center pb-2">
