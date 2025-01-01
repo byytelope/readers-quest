@@ -2,6 +2,7 @@ import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
+import { Text as DefaultText } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import EmotionalCheckInModal from "@/components/EmotionalCheckInModal";
@@ -26,9 +27,9 @@ export default function HomeScreen() {
     <SafeAreaView className="flex-1 items-center px-4 bg-white dark:bg-black">
       <EmotionalCheckInModal ref={sheetRef} />
       <View className="flex-1 items-center justify-center gap-4">
-        <Text className="text-4xl font-black text-lime-600 text-center">
+        <DefaultText className="text-4xl font-black text-lime-700  dark:text-lime-400 text-center">
           Reader's Quest
-        </Text>
+        </DefaultText>
         <Text className="text-xl font-medium text-center pb-2">
           Who do you wanna explore with today?
         </Text>

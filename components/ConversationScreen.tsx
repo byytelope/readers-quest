@@ -1,10 +1,9 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { usePreventRemove } from "@react-navigation/native";
-import { Audio } from "expo-av";
 import { useNavigation, useRouter } from "expo-router";
 import * as Speech from "expo-speech";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Text as DefaultText,
@@ -19,45 +18,46 @@ import TextButton from "@/components/TextButton";
 import { Text, View } from "@/components/Themed";
 import { useAppContext } from "@/utils/appContext";
 import {
-  type ApiResult,
   type ConversationContent,
-  type Feedback,
+  getAward,
   getFriendlyFeedback,
 } from "@/utils/types";
+import { useAudioRecorder } from "@/utils/useAudioRecorder";
 import LottieView from "lottie-react-native";
 
 interface ConversationScreenProps {
   conversation: ConversationContent;
-  title: string;
-  subtitle: string;
 }
 
 export default function ConversationScreen({
   conversation,
-  title,
-  subtitle,
 }: ConversationScreenProps) {
   const navigation = useNavigation();
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const [isUploading, setIsUploading] = useState(false);
-  const [message, setMessage] = useState(subtitle);
-  const [recording, setRecording] = useState<Audio.Recording>();
-  const [scores, setScores] = useState<number[]>([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
-  const [feedback, setFeedback] = useState<Feedback[]>([]);
-  const { state, updateState } = useAppContext();
+  const [animalSpeaking, setAnimalSpeaking] = useState(false);
+  const [showAnimalDialog, setShowAnimalDialog] = useState(false);
+  const { state } = useAppContext();
   const animationRef = useRef<LottieView>(null);
 
-  useEffect(() => {
-    if (currentSentenceIndex === conversation.child.length) {
-      setMessage("");
-    }
+  const {
+    record,
+    stopRecording,
+    isUploading,
+    recording,
+    feedback,
+    setFeedback,
+    scores,
+    getGrade,
+    message,
+  } = useAudioRecorder();
 
-    if (getGrade() >= 0.5) {
+  useEffect(() => {
+    if (getGrade(conversation.child.length) >= 0.5) {
       animationRef.current?.play();
     }
-  }, [currentSentenceIndex, conversation.child.length]);
+  }, [conversation.child.length, getGrade]);
 
   usePreventRemove(
     !(currentSentenceIndex === conversation.child.length),
@@ -77,106 +77,29 @@ export default function ConversationScreen({
     },
   );
 
-  const record = async () => {
-    try {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY,
-      );
-
-      setRecording(recording);
-    } catch (err) {
-      console.error("Failed to start recording", err);
-    }
-  };
-
-  const stopRecording = async () => {
-    await recording?.stopAndUnloadAsync();
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-    });
-    const uri = recording?.getURI();
-    await callApi(uri ?? "");
-    setRecording(undefined);
-  };
-
-  const callApi = async (uri: string) => {
-    try {
-      setIsUploading(true);
-
-      const fileName = uri.split("/").pop() || "audio.m4a";
-      const formData = new FormData();
-      const audio_file = {
-        uri,
-        name: fileName,
-        type: "audio/m4a",
-      };
-
-      formData.append("audio", audio_file as any);
-      formData.append(
-        "expected_text",
-        conversation.child[currentSentenceIndex],
-      );
-
-      const response = await fetch("http://192.168.100.156:8000/grade", {
-        method: "POST",
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        body: formData,
-      });
-
-      console.log("Audio uploaded successfully!");
-
-      const result: ApiResult = await response.json();
-
-      updateState("frustrated", result.frustrated);
-      setFeedback(result.feedback);
-
-      if (result.grade >= 0.8) {
-        setMessage("🥳 You're doing great! Keep going!");
-        setScores(scores.concat([Math.ceil(result.grade * 10)]));
-        Speech.speak(conversation.ai[currentSentenceIndex], {
-          onDone: () => {
-            setCurrentSentenceIndex(currentSentenceIndex + 1);
-          },
-        });
-      } else {
-        Speech.speak("Almost there...Try again!");
-        setMessage(
-          `🙂 Almost there! Try again or ask ${state.avatar} for help`,
-        );
-      }
-
-      setIsUploading(false);
-      console.log("API Response:", result);
-    } catch (error) {
-      setIsUploading(false);
-      console.error("Error uploading audio", error);
-      alert("Failed to upload audio.");
-    }
-  };
-
-  const getGrade = useCallback(() => {
-    const _score = scores.reduce((i, j) => i + j, 0);
-    return _score / (conversation.child.length * 10);
-  }, [scores, conversation]);
-
-  const getAward = () => {
-    const grade = getGrade();
-    if (grade >= 0.8) {
-      return { message: "You earned a Gold Award!", emoji: "🎖️" };
-    }
-    if (grade >= 0.65) {
-      return { message: "You earned a Silver Award!", emoji: "🥈" };
-    }
-    if (grade >= 0.5) {
-      return { message: "You earned a Bronze Award!", emoji: "🥉" };
-    }
-    return { message: "Keep practicing to earn an award!", emoji: "😊" };
+  const handleStopRecording = async () => {
+    await stopRecording(
+      conversation.child[currentSentenceIndex],
+      "http://192.168.100.156:8000/grade",
+      (grade) => {
+        if (grade >= 0.8) {
+          setAnimalSpeaking(true);
+          setShowAnimalDialog(true);
+          Speech.speak(conversation.ai[currentSentenceIndex], {
+            onDone: () => {
+              setCurrentSentenceIndex(currentSentenceIndex + 1);
+              setAnimalSpeaking(false);
+              setShowAnimalDialog(false);
+            },
+          });
+        } else {
+          setAnimalSpeaking(true);
+          Speech.speak("Almost there...Try again!", {
+            onDone: () => setAnimalSpeaking(false),
+          });
+        }
+      },
+    );
   };
 
   return (
@@ -193,13 +116,16 @@ export default function ConversationScreen({
                 height: "100%",
                 position: "absolute",
                 backgroundColor: "transparent",
-                display: getGrade() >= 0.5 ? "flex" : "none",
+                display:
+                  getGrade(conversation.child.length) >= 0.5 ? "flex" : "none",
               }}
               autoPlay={false}
             />
-            <Text className="text-6xl pt-2">{getAward().emoji}</Text>
+            <Text className="text-6xl pt-2">
+              {getAward(getGrade(conversation.child.length)).emoji}
+            </Text>
             <Text className="text-4xl font-bold text-center w-full">
-              {getAward().message}
+              {getAward(getGrade(conversation.child.length)).message}
             </Text>
             <Text className="text-2xl text-center">
               Your total score is {scores.reduce((i, j) => i + j, 0)} points.
@@ -227,10 +153,7 @@ export default function ConversationScreen({
                 </Text>
               </DefaultView>
             </View>
-            <Text className="text-3xl font-bold text-center">{title}</Text>
-            <DefaultText className="text-md text-stone-500 dark:text-stone-400 text-center mb-4">
-              {message}
-            </DefaultText>
+            <Text className="text-xl font-bold text-center">{message}</Text>
           </View>
           <View className="gap-8">
             {conversation.child.map((sentence, i) => (
@@ -242,16 +165,16 @@ export default function ConversationScreen({
                   className="max-h-[30rem] sm:max-h-[20rem]"
                   alwaysBounceVertical={false}
                 >
-                  <View className="pb-8">
-                    <DefaultText className="text-2xl font-medium text-lime-700 dark:text-lime-500 pb-4">
+                  <View className={showAnimalDialog ? "hidden" : ""}>
+                    <DefaultText className="text-2xl font-extrabold text-lime-700 dark:text-lime-500 pb-4">
                       Say:
                     </DefaultText>
                     <Text className="font-bold text-5xl leading-tight">
                       {sentence}
                     </Text>
                   </View>
-                  <View>
-                    <DefaultText className="text-2xl font-medium text-lime-700 dark:text-lime-500 pb-4">
+                  <View className={showAnimalDialog ? "" : "hidden"}>
+                    <DefaultText className="text-2xl font-extrabold text-lime-700 dark:text-lime-500 pb-4">
                       {state.avatar}:
                     </DefaultText>
                     <Text className="font-bold text-5xl leading-tight">
@@ -281,11 +204,14 @@ export default function ConversationScreen({
                   </DefaultText>
                 </Pressable>
                 <Pressable
-                  onPress={() =>
+                  disabled={animalSpeaking}
+                  onPress={() => {
+                    setAnimalSpeaking(true);
                     Speech.speak(conversation.child[currentSentenceIndex], {
                       rate: 0.5,
-                    })
-                  }
+                      onDone: () => setAnimalSpeaking(false),
+                    });
+                  }}
                   className="w-fit min-w-24 h-20 items-center justify-center text-xl p-4 rounded-xl disabled:border-2 border-stone-300 dark:border-stone-800 bg-stone-200 dark:bg-stone-800 disabled:bg-transparent active:bg-stone-300 dark:active:bg-stone-700 group"
                 >
                   <Ionicons
@@ -317,8 +243,8 @@ export default function ConversationScreen({
                       : "Hold and Speak"
                 }
                 onPressIn={record}
-                onPressOut={stopRecording}
-                disabled={isUploading}
+                onPressOut={handleStopRecording}
+                disabled={isUploading || animalSpeaking}
                 recording={recording !== undefined}
               />
             </View>

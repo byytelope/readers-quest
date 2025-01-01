@@ -113,3 +113,28 @@ export const stories: Stories = {
     ],
   },
 };
+
+export const passingMessages = [
+  "🥳 Awesome! Keep going!",
+  "👏 Great job! Keep it up!",
+  "😄 Fantastic work! Continue on!",
+];
+
+export const failingMessages = [
+  "🥲 Oops... Try again.",
+  "🫣 Not quite, give it another shot!",
+  "😓 Keep practicing, you'll get it!",
+];
+
+export const getAward = (grade: number) => {
+  if (grade >= 0.8) {
+    return { message: "You earned a Gold Award!", emoji: "🎖️" };
+  }
+  if (grade >= 0.65) {
+    return { message: "You earned a Silver Award!", emoji: "🥈" };
+  }
+  if (grade >= 0.5) {
+    return { message: "You earned a Bronze Award!", emoji: "🥉" };
+  }
+  return { message: "Keep practicing to earn an award!", emoji: "😊" };
+};
