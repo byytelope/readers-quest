@@ -35,7 +35,7 @@ export function useAudioRecorder() {
   const stopRecording = async (
     expectedText: string,
     apiUrl: string,
-    gradeCallback: (grade: number) => void,
+    resultCallback: (result: ApiResult) => void,
   ) => {
     try {
       await recording?.stopAndUnloadAsync();
@@ -44,7 +44,7 @@ export function useAudioRecorder() {
       });
       const uri = recording?.getURI() ?? "";
       setRecording(undefined);
-      await callApi(uri, expectedText, apiUrl, gradeCallback);
+      await callApi(uri, expectedText, apiUrl, resultCallback);
     } catch (err) {
       console.error(err);
     }
@@ -54,7 +54,7 @@ export function useAudioRecorder() {
     uri: string,
     expectedText: string,
     apiUrl: string,
-    gradeCallback: (grade: number) => void,
+    resultCallback: (result: ApiResult) => void,
   ) => {
     try {
       setIsUploading(true);
@@ -89,7 +89,7 @@ export function useAudioRecorder() {
           failingMessages[Math.floor(Math.random() * failingMessages.length)],
         );
       }
-      gradeCallback(result.grade);
+      resultCallback(result);
       setIsUploading(false);
     } catch (error) {
       setIsUploading(false);

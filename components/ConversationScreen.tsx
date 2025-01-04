@@ -38,7 +38,7 @@ export default function ConversationScreen({
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [animalSpeaking, setAnimalSpeaking] = useState(false);
   const [showAnimalDialog, setShowAnimalDialog] = useState(false);
-  const { state } = useAppContext();
+  const { state, updateState } = useAppContext();
   const animationRef = useRef<LottieView>(null);
 
   const {
@@ -80,9 +80,11 @@ export default function ConversationScreen({
   const handleStopRecording = async () => {
     await stopRecording(
       conversation.child[currentSentenceIndex],
-      "http://192.168.100.156:8000/grade",
-      (grade) => {
-        if (grade >= 0.8) {
+      // "http://10.103.98.90:8000/grade",
+      "http://localhost:8000/grade",
+      (res) => {
+        updateState("frustrated", res.frustrated);
+        if (res.grade >= 0.8) {
           setAnimalSpeaking(true);
           setShowAnimalDialog(true);
           Speech.speak(conversation.ai[currentSentenceIndex], {

@@ -31,7 +31,7 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
   const colorScheme = useColorScheme();
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [animalSpeaking, setAnimalSpeaking] = useState(false);
-  const { state } = useAppContext();
+  const { state, updateState } = useAppContext();
   const animationRef = useRef<LottieView>(null);
 
   const {
@@ -70,9 +70,11 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
   const handleStopRecording = async () => {
     await stopRecording(
       content[currentSentenceIndex],
-      "http://192.168.100.156:8000/grade",
-      (grade) => {
-        if (grade >= 0.8) {
+      // "http://10.103.98.90:8000/grade",
+      "http://localhost:8000/grade",
+      (res) => {
+        updateState("frustrated", res.frustrated);
+        if (res.grade >= 0.8) {
           setCurrentSentenceIndex(currentSentenceIndex + 1);
         } else {
           setAnimalSpeaking(true);
