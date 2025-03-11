@@ -3,7 +3,7 @@ import { usePreventRemove } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import * as Speech from "expo-speech";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Text as DefaultText,
@@ -77,17 +77,24 @@ export default function ConversationScreen({
     },
   );
 
+  const filteredFeedback = useCallback(
+    () => feedback.filter((val) => val.type !== "extra"),
+    [feedback],
+  );
+
   const handleStopRecording = async () => {
     await stopRecording(
       conversation.child[currentSentenceIndex],
-      // "http://10.103.98.90:8000/grade",
-      "http://localhost:8000/grade",
+      "http://192.168.100.170:8000/grade",
+      // "http://localhost:8000/grade",
       (res) => {
         updateState("frustrated", res.frustrated);
         if (res.grade >= 0.8) {
+          setFeedback([]);
           setAnimalSpeaking(true);
           setShowAnimalDialog(true);
           Speech.speak(conversation.ai[currentSentenceIndex], {
+            language: "en-UK",
             onDone: () => {
               setCurrentSentenceIndex(currentSentenceIndex + 1);
               setAnimalSpeaking(false);
@@ -97,6 +104,7 @@ export default function ConversationScreen({
         } else {
           setAnimalSpeaking(true);
           Speech.speak("Almost there...Try again!", {
+            language: "en-UK",
             onDone: () => setAnimalSpeaking(false),
           });
         }
@@ -158,10 +166,11 @@ export default function ConversationScreen({
             <Text className="text-xl font-bold text-center">{message}</Text>
           </View>
           <View className="gap-8">
-            {conversation.child.map((sentence, i) => (
+            {conversation.child.map((sentence, sentenceIdx) => (
               <View
-                key={i}
-                className={currentSentenceIndex === i ? "" : "hidden"}
+                // biome-ignore lint/suspicious/noArrayIndexKey: bruh
+                key={sentenceIdx}
+                className={currentSentenceIndex === sentenceIdx ? "" : "hidden"}
               >
                 <ScrollView
                   className="max-h-[30rem] sm:max-h-[20rem]"
@@ -171,16 +180,24 @@ export default function ConversationScreen({
                     <DefaultText className="text-2xl font-extrabold text-lime-700 dark:text-lime-500 pb-4">
                       Say:
                     </DefaultText>
-                    <Text className="font-bold text-5xl leading-tight">
-                      {sentence}
-                    </Text>
+                    <View className="gap-2 flex-row flex-wrap">
+                      {sentence.split(" ").map((word, wordIdx) => (
+                        <Text
+                          // biome-ignore lint/suspicious/noArrayIndexKey: bruh
+                          key={`word-${wordIdx}`}
+                          className={`font-bold text-5xl leading-tight ${filteredFeedback().length === 0 ? "!text-inherit" : filteredFeedback()[wordIdx]?.type !== "correct" ? "!text-red-500" : "!text-inherit"}`}
+                        >
+                          {word}
+                        </Text>
+                      ))}
+                    </View>
                   </View>
                   <View className={showAnimalDialog ? "" : "hidden"}>
                     <DefaultText className="text-2xl font-extrabold text-lime-700 dark:text-lime-500 pb-4">
                       {state.avatar}:
                     </DefaultText>
                     <Text className="font-bold text-5xl leading-tight">
-                      {conversation.ai[i]}
+                      {conversation.ai[sentenceIdx]}
                     </Text>
                   </View>
                 </ScrollView>
@@ -210,6 +227,7 @@ export default function ConversationScreen({
                   onPress={() => {
                     setAnimalSpeaking(true);
                     Speech.speak(conversation.child[currentSentenceIndex], {
+                      language: "en-UK",
                       rate: 0.5,
                       onDone: () => setAnimalSpeaking(false),
                     });

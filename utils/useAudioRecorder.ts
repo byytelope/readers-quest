@@ -66,6 +66,7 @@ export function useAudioRecorder() {
         type: "audio/m4a",
       };
 
+      // biome-ignore lint/suspicious/noExplicitAny: bruh
       formData.append("audio", audio_file as any);
       formData.append("expected_text", expectedText);
 

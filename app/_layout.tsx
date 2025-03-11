@@ -11,8 +11,8 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { Platform, useColorScheme } from "react-native";
 import {
-  configureReanimatedLogger,
   ReanimatedLogLevel,
+  configureReanimatedLogger,
 } from "react-native-reanimated";
 
 import "../global.css";
@@ -55,14 +55,14 @@ function RootLayoutNav() {
             <StatusBar translucent={true} backgroundColor={"transparent"} />
             <Stack
               screenOptions={{
-                headerTintColor: colorScheme === "dark"
-                  ? Colors.dark.tint
-                  : Colors.light.tint,
+                headerTintColor:
+                  colorScheme === "dark" ? Colors.dark.tint : Colors.light.tint,
                 headerTransparent: false,
                 headerStyle: {
-                  backgroundColor: colorScheme === "dark"
-                    ? DarkTheme.colors.background
-                    : "white",
+                  backgroundColor:
+                    colorScheme === "dark"
+                      ? DarkTheme.colors.background
+                      : "white",
                 },
               }}
             >

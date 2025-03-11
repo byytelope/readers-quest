@@ -4,7 +4,7 @@ import { useNavigation, useRouter } from "expo-router";
 import * as Speech from "expo-speech";
 import { StatusBar } from "expo-status-bar";
 import LottieView from "lottie-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Text as DefaultText,
@@ -67,18 +67,25 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
     );
   });
 
+  const filteredFeedback = useCallback(
+    () => feedback.filter((val) => val.type !== "extra"),
+    [feedback],
+  );
+
   const handleStopRecording = async () => {
     await stopRecording(
       content[currentSentenceIndex],
-      // "http://10.103.98.90:8000/grade",
-      "http://localhost:8000/grade",
+      "http://192.168.100.170:8000/grade",
+      // "http://localhost:8000/grade",
       (res) => {
         updateState("frustrated", res.frustrated);
         if (res.grade >= 0.8) {
+          setFeedback([]);
           setCurrentSentenceIndex(currentSentenceIndex + 1);
         } else {
           setAnimalSpeaking(true);
           Speech.speak("Almost there...Try again!", {
+            language: "en-UK",
             onDone: () => setAnimalSpeaking(false),
           });
         }
@@ -137,10 +144,11 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
             <Text className="text-xl font-bold text-center">{message}</Text>
           </View>
           <View className="gap-8">
-            {content.map((sentence, i) => (
+            {content.map((sentence, sentenceIdx) => (
               <View
-                key={i}
-                className={currentSentenceIndex === i ? "" : "hidden"}
+                // biome-ignore lint/suspicious/noArrayIndexKey: bruh
+                key={sentenceIdx}
+                className={currentSentenceIndex === sentenceIdx ? "" : "hidden"}
               >
                 <ScrollView
                   className="max-h-[26rem]"
@@ -149,9 +157,17 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
                   <DefaultText className="text-2xl font-extrabold text-lime-700 dark:text-lime-500 pb-4">
                     Say:
                   </DefaultText>
-                  <Text className="font-bold text-5xl leading-tight">
-                    {sentence}
-                  </Text>
+                  <View className="gap-2 flex-row flex-wrap">
+                    {sentence.split(" ").map((word, wordIdx) => (
+                      <Text
+                        // biome-ignore lint/suspicious/noArrayIndexKey: bruh
+                        key={`word-${wordIdx}`}
+                        className={`font-bold text-5xl leading-tight ${filteredFeedback().length === 0 ? "!text-inherit" : filteredFeedback()[wordIdx]?.type !== "correct" ? "!text-red-500" : "!text-inherit"}`}
+                      >
+                        {word}
+                      </Text>
+                    ))}
+                  </View>
                 </ScrollView>
               </View>
             ))}
@@ -180,6 +196,7 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
                     setAnimalSpeaking(true);
                     Speech.speak(content[currentSentenceIndex], {
                       rate: 0.5,
+                      language: "en-UK",
                       onDone: () => setAnimalSpeaking(false),
                     });
                   }}

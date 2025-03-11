@@ -7,8 +7,13 @@ export type Story = {
 };
 export type Stories = { animals: Story; adventure: Story; friends: Story };
 export type Feedback =
-  | { type: "missing" | "extra" | "correct"; word: string }
-  | { type: "mispronounced"; expected: string; word: string };
+  | {
+      type: "missing" | "correct";
+      word: string;
+      index: number;
+    }
+  | { type: "mispronounced"; word: string; expected: string; index: number }
+  | { type: "extra"; word: string };
 export type ApiResult = {
   grade: number;
   frustrated: boolean;
