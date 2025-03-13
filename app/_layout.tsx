@@ -1,3 +1,4 @@
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import {
   DarkTheme,
   DefaultTheme,
@@ -9,7 +10,8 @@ import * as NavigationBar from "expo-navigation-bar";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Platform, useColorScheme } from "react-native";
+import { AppState, Platform, useColorScheme } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   ReanimatedLogLevel,
   configureReanimatedLogger,
@@ -18,11 +20,24 @@ import {
 import "../global.css";
 import Colors from "@/constants/Colors";
 import { AppProvider } from "@/utils/appContext";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { supabase } from "@/utils/supabase";
 
 export default function RootLayout() {
   const [permissionResponse, requestPermission] = Audio.usePermissions();
+
+  useEffect(() => {
+    const listener = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+
+    () => {
+      listener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (Platform.OS === "android") {
