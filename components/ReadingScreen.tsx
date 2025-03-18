@@ -19,7 +19,9 @@ import TextButton from "@/components/TextButton";
 import { Text, View } from "@/components/Themed";
 import { useAppContext } from "@/utils/appContext";
 import { getAward, getFriendlyFeedback } from "@/utils/helpers";
+import { useSupabase } from "@/utils/supabaseContext";
 import { useAudioRecorder } from "@/utils/useAudioRecorder";
+import { AuthError } from "@supabase/supabase-js";
 
 interface ReadingScreenProps {
   content: string[];
@@ -29,6 +31,7 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
   const navigation = useNavigation();
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { updateUser, user } = useSupabase();
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [animalSpeaking, setAnimalSpeaking] = useState(false);
   const { state, updateState } = useAppContext();
@@ -93,6 +96,21 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
     );
   };
 
+  const handleFinish = async () => {
+    if (user) {
+      const newScore = user?.score + scores.reduce((i, j) => i + j, 0);
+      const error = await updateUser({ score: newScore });
+
+      if (!error) {
+        router.dismissTo("/(protected)/home");
+      } else {
+        console.log(error.message);
+      }
+    } else {
+      throw new AuthError("User not authenticated properly.", 403);
+    }
+  };
+
   return (
     <SafeAreaView className="p-4 justify-between flex-1 bg-white dark:bg-black">
       <StatusBar style="light" />
@@ -121,10 +139,7 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
               Your total score is {scores.reduce((i, j) => i + j, 0)} points.
             </Text>
           </View>
-          <TextButton
-            text="Finish"
-            onPress={() => router.dismissTo("/(protected)/home")}
-          />
+          <TextButton text="Finish" onPress={handleFinish} />
         </>
       ) : (
         <>
@@ -165,7 +180,13 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
                       <Text
                         // biome-ignore lint/suspicious/noArrayIndexKey: bruh
                         key={`word-${wordIdx}`}
-                        className={`font-bold text-5xl leading-tight ${filteredFeedback().length === 0 ? "!text-inherit" : filteredFeedback()[wordIdx]?.type !== "correct" ? "!text-red-500" : "!text-inherit"}`}
+                        className={`font-bold text-5xl leading-tight ${
+                          filteredFeedback().length === 0
+                            ? "!text-inherit"
+                            : filteredFeedback()[wordIdx]?.type !== "correct"
+                              ? "!text-red-500"
+                              : "!text-inherit"
+                        }`}
                       >
                         {word}
                       </Text>

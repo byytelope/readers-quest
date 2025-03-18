@@ -21,26 +21,30 @@ export default function ProtectedLayout() {
     <Stack
       initialRouteName="home"
       screenOptions={{
+        headerShown: false,
+        headerLargeTitle: true,
+        headerLargeTitleShadowVisible: false,
+        headerTransparent: false,
         headerTintColor:
           colorScheme === "dark" ? Colors.dark.tint : Colors.light.tint,
-        headerTransparent: false,
         headerStyle: {
           backgroundColor:
             colorScheme === "dark" ? DarkTheme.colors.background : "white",
         },
       }}
     >
+      <Stack.Screen name="home" options={{ title: "Home" }} />
       <Stack.Screen
-        name="home"
+        name="profile"
         options={{
-          headerShown: false,
-          title: "Home",
+          title: "Profile",
+          headerShown: true,
+          presentation: "modal",
         }}
       />
       <Stack.Screen
         name="simple-sentences"
         options={{
-          headerShown: false,
           title: "Simple Sentences",
           presentation: "modal",
           headerBackVisible: false,
@@ -51,8 +55,6 @@ export default function ProtectedLayout() {
         options={{
           headerShown: true,
           title: "Story Mode",
-          headerLargeTitle: true,
-          headerLargeTitleShadowVisible: false,
         }}
       />
       <Stack.Screen

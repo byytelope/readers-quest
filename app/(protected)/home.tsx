@@ -19,7 +19,7 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const sheetRef = useRef<BottomSheetModal>(null);
   const { state, updateState } = useAppContext();
-  const { signOut } = useSupabase();
+  const { user } = useSupabase();
 
   useEffect(() => {
     if (state.frustrated) {
@@ -30,15 +30,23 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="flex-1 items-center p-4 gap-4 bg-white dark:bg-black">
       <EmotionalCheckInModal ref={sheetRef} />
-      <View className="w-full items-end">
+      <View className="w-full flex-row justify-end items-center gap-2">
+        <View className="flex-row items-center h-12 px-3 gap-2">
+          <Ionicons
+            name="star"
+            size={24}
+            color={colorScheme === "dark" ? "white" : "gold"}
+          />
+          <Text className="font-bold">{user?.score.toLocaleString() || 0}</Text>
+        </View>
         <Pressable
           className="justify-center items-center size-12 bg-stone-100 active:bg-stone-200 dark:bg-stone-800 dark:active:bg-stone-900 rounded-lg"
-          onPress={async () => {
-            await signOut();
+          onPress={() => {
+            router.push("/(protected)/profile");
           }}
         >
           <Ionicons
-            name="log-out-outline"
+            name="person-outline"
             size={24}
             color={colorScheme === "dark" ? "white" : "black"}
           />

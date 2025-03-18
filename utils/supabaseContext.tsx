@@ -43,7 +43,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
   const [initialized, setInitialized] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
 
-  const fetchUserInfo = async () => {
+  const fetchUserInfo = async (session: Session | null) => {
     if (!session?.user) return null;
 
     const { data, error } = await supabase
@@ -64,7 +64,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     setSession(newSession);
 
     if (newSession?.user) {
-      const userData = await fetchUserInfo();
+      const userData = await fetchUserInfo(newSession);
       setUser(userData);
     } else {
       setUser(null);
@@ -107,10 +107,14 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
       return new AuthError("User not logged in.", 403, "-1");
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("user_info")
       .upsert({ id: session!.user.id, ...userInfo })
-      .eq("id", session!.user.id);
+      .eq("id", session!.user.id)
+      .select()
+      .single();
+
+    setUser(data as User);
 
     return error;
   };
@@ -131,8 +135,8 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     getInitialSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
+      async (_event, newSession) => {
+        await handleSessionChange(newSession);
       },
     );
 
