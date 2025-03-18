@@ -1,3 +1,5 @@
+import type { Tables } from "./database.types";
+
 export type StoryTheme = "animals" | "adventure" | "friends";
 export type Story = {
   title: string;
@@ -14,28 +16,14 @@ export type Feedback =
     }
   | { type: "mispronounced"; word: string; expected: string; index: number }
   | { type: "extra"; word: string };
+
 export type ApiResult = {
   grade: number;
   frustrated: boolean;
   feedback: Feedback[];
 };
 
-export const getFriendlyFeedback = (feedback: Feedback[]) =>
-  feedback
-    .map((item) => {
-      switch (item.type) {
-        case "missing":
-          return `You missed the word "${item.word}"`;
-        case "extra":
-          return `You said an extra word "${item.word}"`;
-        case "correct":
-          return `You said "${item.word}" correctly`;
-        case "mispronounced":
-          return `You mispronounced "${item.word}". Expected: "${item.expected}"`;
-      }
-    })
-    .join("\n");
-
+export type User = Tables<"user_info">;
 export interface ConversationContent {
   child: string[];
   ai: string[];
@@ -130,16 +118,3 @@ export const failingMessages = [
   "🫣 Not quite, give it another shot!",
   "😓 Keep practicing, you'll get it!",
 ];
-
-export const getAward = (grade: number) => {
-  if (grade >= 0.8) {
-    return { message: "You earned a Gold Award!", emoji: "🎖️" };
-  }
-  if (grade >= 0.65) {
-    return { message: "You earned a Silver Award!", emoji: "🥈" };
-  }
-  if (grade >= 0.5) {
-    return { message: "You earned a Bronze Award!", emoji: "🥉" };
-  }
-  return { message: "Keep practicing to earn an award!", emoji: "😊" };
-};

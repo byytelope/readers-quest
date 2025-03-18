@@ -1,85 +1,51 @@
-import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import { useEffect, useRef } from "react";
-import { Text as DefaultText } from "react-native";
+import { useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
+import { Text as DefaultText, View as DefaultView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import EmotionalCheckInModal from "@/components/EmotionalCheckInModal";
-import SelectButton from "@/components/SelectButton";
 import TextButton from "@/components/TextButton";
 import { Text, View } from "@/components/Themed";
-import { useAppContext } from "@/utils/appContext";
+import { useSupabase } from "@/utils/supabaseContext";
 
-export default function HomeScreen() {
-  const avatars = ["Giraffe", "Elephant", "Bear", "Tiger"];
+export default function WelcomeScreen() {
   const router = useRouter();
-  const sheetRef = useRef<BottomSheetModal>(null);
-  const { state, updateState } = useAppContext();
+  const segments = useSegments();
+  const { session, signIn } = useSupabase();
 
   useEffect(() => {
-    if (state.frustrated) {
-      sheetRef.current?.present();
+    if (session && segments[0] == null) {
+      router.replace("/(protected)/home");
     }
-  }, [state.frustrated]);
+  }, [session, router.replace, segments]);
 
   return (
-    <SafeAreaView className="flex-1 items-center px-4 bg-white dark:bg-black">
-      <EmotionalCheckInModal ref={sheetRef} />
-      <View className="flex-1 items-center justify-center gap-4">
-        <DefaultText className="text-4xl font-black text-lime-700  dark:text-lime-400 text-center">
+    <SafeAreaView className="flex-1 justify-between items-center p-4 bg-white dark:bg-black">
+      <DefaultView className="flex-1 justify-center items-center gap-4 p-8 w-full">
+        <Image
+          source={require("@/assets/images/appicon.png")}
+          style={{ width: 100, height: 100 }}
+        />
+        <DefaultText className="text-4xl font-black text-lime-700 dark:text-lime-500 text-center">
           Reader's Quest
         </DefaultText>
         <Text className="text-xl font-medium text-center pb-2">
-          Who do you wanna explore with today?
+          Welcome traveller! Are you ready to begin your quest?
         </Text>
-        <View className="flex-row justify-center gap-2 md:gap-4 lg:gap-8">
-          {avatars.map((avatar) => (
-            <SelectButton
-              key={avatar}
-              onPress={() => {
-                updateState("avatar", avatar);
-              }}
-              active={state.avatar === avatar}
-            >
-              {avatar === "Giraffe" ? (
-                <Image
-                  source={require("@/assets/images/Giraffe.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-              ) : avatar === "Elephant" ? (
-                <Image
-                  source={require("@/assets/images/Elephant.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-              ) : avatar === "Bear" ? (
-                <Image
-                  source={require("@/assets/images/Bear.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-              ) : (
-                <Image
-                  source={require("@/assets/images/Tiger.png")}
-                  style={{ width: 40, height: 40 }}
-                />
-              )}
-            </SelectButton>
-          ))}
-        </View>
-      </View>
-      <View className="gap-4 w-full px-0 sm:px-24 lg:px-64">
+      </DefaultView>
+      <View className="w-full gap-4 px-0 sm:px-24 lg:px-64">
         <TextButton
-          text="Simple Sentences"
-          onPress={() => router.push("/simple-sentences")}
+          text="Login"
+          onPress={async () => {
+            const error = await signIn("shadhanm@gmail.com", "Password@123");
+
+            if (error) {
+              console.log(error.message);
+            }
+          }}
         />
-        <TextButton
-          text="Story Mode"
-          onPress={() => router.push("/story-mode")}
-        />
-        <TextButton
-          text={`Talk to ${state.avatar}`}
-          onPress={() => router.push("/conversation-mode")}
-        />
+        <TextButton text="Sign In" onPress={() => router.push("/sign-in")} />
+        <TextButton text="Sign Up" onPress={() => router.push("/sign-up")} />
       </View>
     </SafeAreaView>
   );

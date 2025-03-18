@@ -3,6 +3,7 @@ import { usePreventRemove } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import * as Speech from "expo-speech";
 import { StatusBar } from "expo-status-bar";
+import LottieView from "lottie-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -17,13 +18,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import TextButton from "@/components/TextButton";
 import { Text, View } from "@/components/Themed";
 import { useAppContext } from "@/utils/appContext";
-import {
-  type ConversationContent,
-  getAward,
-  getFriendlyFeedback,
-} from "@/utils/types";
+import { getAward, getFriendlyFeedback } from "@/utils/helpers";
+import type { ConversationContent } from "@/utils/types";
 import { useAudioRecorder } from "@/utils/useAudioRecorder";
-import LottieView from "lottie-react-native";
 
 interface ConversationScreenProps {
   conversation: ConversationContent;
@@ -141,7 +138,10 @@ export default function ConversationScreen({
               Your total score is {scores.reduce((i, j) => i + j, 0)} points.
             </Text>
           </View>
-          <TextButton text="Finish" onPress={() => router.dismissTo("/")} />
+          <TextButton
+            text="Finish"
+            onPress={() => router.dismissTo("/(protected)/home")}
+          />
         </>
       ) : (
         <>

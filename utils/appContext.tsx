@@ -7,7 +7,7 @@ interface AppState {
 
 interface AppContextType {
   state: AppState;
-  updateState: (key: keyof AppState, value: any) => void;
+  updateState: <K extends keyof AppState>(key: K, value: AppState[K]) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -20,7 +20,10 @@ const initialState: AppState = {
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, setState] = useState<AppState>(initialState);
 
-  const updateState = (key: keyof AppState, value: any) => {
+  const updateState = <K extends keyof AppState>(
+    key: K,
+    value: AppState[K],
+  ) => {
     setState((prev) => ({ ...prev, [key]: value }));
   };
 

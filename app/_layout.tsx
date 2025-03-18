@@ -7,7 +7,7 @@ import {
 import { Audio } from "expo-av";
 import "expo-dev-client";
 import * as NavigationBar from "expo-navigation-bar";
-import { Stack } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { AppState, Platform, useColorScheme } from "react-native";
@@ -17,10 +17,13 @@ import {
   configureReanimatedLogger,
 } from "react-native-reanimated";
 
-import "../global.css";
+import "@/global.css";
 import Colors from "@/constants/Colors";
 import { AppProvider } from "@/utils/appContext";
 import { supabase } from "@/utils/supabase";
+import { SupabaseProvider } from "@/utils/supabaseContext";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [permissionResponse, requestPermission] = Audio.usePermissions();
@@ -34,7 +37,7 @@ export default function RootLayout() {
       }
     });
 
-    () => {
+    return () => {
       listener.remove();
     };
   }, []);
@@ -64,71 +67,52 @@ function RootLayoutNav() {
 
   return (
     <AppProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <GestureHandlerRootView>
-          <BottomSheetModalProvider>
-            <StatusBar translucent={true} backgroundColor={"transparent"} />
-            <Stack
-              screenOptions={{
-                headerTintColor:
-                  colorScheme === "dark" ? Colors.dark.tint : Colors.light.tint,
-                headerTransparent: false,
-                headerStyle: {
-                  backgroundColor:
-                    colorScheme === "dark"
-                      ? DarkTheme.colors.background
-                      : "white",
-                },
-              }}
-            >
-              <Stack.Screen
-                name="index"
-                options={{
+      <SupabaseProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <GestureHandlerRootView>
+            <BottomSheetModalProvider>
+              <StatusBar translucent={true} backgroundColor={"transparent"} />
+              <Stack
+                screenOptions={{
                   headerShown: false,
-                  title: "Home",
-                }}
-              />
-              <Stack.Screen
-                name="story-mode"
-                options={{
-                  headerShown: true,
-                  title: "Story Mode",
                   headerLargeTitle: true,
-                  headerLargeTitleShadowVisible: false,
+                  headerTintColor:
+                    colorScheme === "dark"
+                      ? Colors.dark.tint
+                      : Colors.light.tint,
+                  headerTransparent: true,
+                  headerStyle: {
+                    backgroundColor:
+                      colorScheme === "dark"
+                        ? DarkTheme.colors.background
+                        : "white",
+                  },
                 }}
-              />
-              <Stack.Screen
-                name="simple-sentences"
-                options={{
-                  headerShown: false,
-                  title: "Simple Sentences",
-                  presentation: "modal",
-                  headerBackVisible: false,
-                }}
-              />
-              <Stack.Screen
-                name="story-reading"
-                initialParams={{ story: {} }}
-                options={{
-                  headerShown: false,
-                  title: "Story Reading",
-                  presentation: "modal",
-                  headerBackVisible: false,
-                }}
-              />
-              <Stack.Screen
-                name="conversation-mode"
-                options={{
-                  headerShown: false,
-                  title: "Conversation Mode",
-                  presentation: "modal",
-                  headerBackVisible: false,
-                }}
-              />
-            </Stack>
-          </BottomSheetModalProvider>
-        </GestureHandlerRootView>
-      </ThemeProvider>
+              >
+                <Stack.Screen name="index" options={{ title: "Welcome" }} />
+                <Stack.Screen
+                  name="sign-in"
+                  options={{
+                    title: "Sign In",
+                    presentation: "modal",
+                    headerShown: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="sign-up"
+                  options={{
+                    title: "Sign Up",
+                    presentation: "modal",
+                    headerShown: false,
+                  }}
+                />
+              </Stack>
+            </BottomSheetModalProvider>
+          </GestureHandlerRootView>
+        </ThemeProvider>
+      </SupabaseProvider>
     </AppProvider>
   );
 }

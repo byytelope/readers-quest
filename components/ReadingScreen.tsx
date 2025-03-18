@@ -18,7 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import TextButton from "@/components/TextButton";
 import { Text, View } from "@/components/Themed";
 import { useAppContext } from "@/utils/appContext";
-import { getAward, getFriendlyFeedback } from "@/utils/types";
+import { getAward, getFriendlyFeedback } from "@/utils/helpers";
 import { useAudioRecorder } from "@/utils/useAudioRecorder";
 
 interface ReadingScreenProps {
@@ -121,7 +121,10 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
               Your total score is {scores.reduce((i, j) => i + j, 0)} points.
             </Text>
           </View>
-          <TextButton text="Finish" onPress={() => router.dismissTo("/")} />
+          <TextButton
+            text="Finish"
+            onPress={() => router.dismissTo("/(protected)/home")}
+          />
         </>
       ) : (
         <>
