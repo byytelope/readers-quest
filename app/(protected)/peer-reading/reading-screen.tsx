@@ -46,6 +46,7 @@ export default function PeerReadingScreen() {
 	const [peerName, setPeerName] = useState("Peer");
 	const [readingComplete, setReadingComplete] = useState(false);
 	const [scores, setScores] = useState<number[]>([]);
+	const [peerConnected, setPeerConnected] = useState(false);
 
 	const {
 		record,
@@ -65,6 +66,7 @@ export default function PeerReadingScreen() {
 		const channel = supabase.channel(`reading-session-${sessionCode}`)
 			.on("broadcast", { event: "reading-turn" }, ({ payload }) => {
 				if (payload.userId !== userId) {
+					setPeerConnected(true);
 					setPeerTurn(payload.isMyTurn);
 					if (payload.currentIndex !== undefined) {
 						setCurrentSentenceIndex(payload.currentIndex);
@@ -80,12 +82,26 @@ export default function PeerReadingScreen() {
 			.on("broadcast", { event: "session-complete" }, () => {
 				setReadingComplete(true);
 			})
+			.on("broadcast", { event: "peer-joined" }, ({ payload }) => {
+				if (payload.userId !== userId) {
+					setPeerConnected(true);
+				}
+			})
 			.subscribe();
+
+		// If non-host (peer), send join notification immediately
+		if (isHost === "false") {
+			supabase.channel(`reading-session-${sessionCode}`).send({
+				type: "broadcast",
+				event: "peer-joined",
+				payload: { userId },
+			});
+		}
 
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, [sessionCode, userId]);
+	}, [sessionCode, userId, isHost]);
 
 	// Send updates to peer
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -170,6 +186,34 @@ export default function PeerReadingScreen() {
 	const handleFinish = async () => {
 		router.dismissTo("/(protected)/home");
 	};
+
+	// If host is waiting for peer to connect, show waiting screen
+	if (isHost === "true" && !peerConnected) {
+		return (
+			<SafeAreaView className="p-4 justify-between flex-1 bg-white dark:bg-black">
+				<StatusBar style="light" animated />
+				<View className="gap-8 items-center justify-between flex-1">
+					<View className="items-center justify-center gap-4 flex-1">
+						<Text className="text-4xl font-bold text-center">
+							Waiting to Connect
+						</Text>
+						<Text className="text-xl text-center">
+							Share this code with your reading partner
+						</Text>
+						<View className="bg-stone-200 dark:bg-stone-800 px-8 py-6 rounded-xl justify-center items-center">
+							<Text className="text-5xl font-bold tracking-wider text-center">
+								{sessionCode}
+							</Text>
+						</View>
+					</View>
+					<TextButton
+						text="Cancel"
+						onPress={() => router.back()}
+					/>
+				</View>
+			</SafeAreaView>
+		);
+	}
 
 	if (readingComplete) {
 		const totalScore = scores.reduce((a, b) => a + b, 0);
@@ -264,7 +308,7 @@ export default function PeerReadingScreen() {
 								Speech.speak(
 									sampleReadingText[currentSentenceIndex],
 									{
-										language: "en-US",
+										language: "en-UK",
 										rate: 0.5,
 									},
 								);

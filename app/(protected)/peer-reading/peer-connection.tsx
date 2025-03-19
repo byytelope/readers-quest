@@ -39,7 +39,7 @@ export default function PeerConnectionScreen() {
       pathname: "/(protected)/peer-reading/reading-screen",
       params: {
         sessionCode: sessionCode,
-        isHost: +isCreating,
+        isHost: isCreating.toString(),
         userId: user?.id || "",
       },
     });
@@ -73,9 +73,8 @@ export default function PeerConnectionScreen() {
               placeholder="Enter 6-digit code"
               maxLength={6}
             />
-            {errorText && (
-              <Text className="text-red-500 mt-2">{errorText}</Text>
-            )}
+            {errorText && <Text className="text-red-500 mt-2">{errorText}
+            </Text>}
           </View>
         </ScrollView>
         <View className="gap-4">
