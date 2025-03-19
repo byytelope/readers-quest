@@ -85,9 +85,7 @@ export default function ConversationScreen({
   const handleStartRecording = async () => {
     await record(
       conversation.child[currentSentenceIndex],
-      "http://172.20.10.4:8000/grade",
-      // "http://192.168.100.170:8000/grade",
-      // "http://localhost:8000/grade",
+      `${process.env.EXPO_PUBLIC_SERVER_URL}:8000/grade`,
       (res) => {
         updateState("frustrated", res.frustrated);
         if (res.grade >= 0.8) {
