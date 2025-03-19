@@ -3,7 +3,7 @@ import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
-import { Pressable, Text as DefaultText, useColorScheme } from "react-native";
+import { Text as DefaultText, Pressable, useColorScheme } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import EmotionalCheckInModal from "@/components/EmotionalCheckInModal";
@@ -27,7 +27,9 @@ export default function HomeScreen() {
     }
   }, [state.frustrated]);
 
-  return (
+  return !user ? (
+    <></>
+  ) : (
     <SafeAreaView className="flex-1 items-center p-4 gap-4 bg-white dark:bg-black">
       <EmotionalCheckInModal ref={sheetRef} />
       <View className="w-full flex-row justify-end items-center gap-2">
@@ -37,7 +39,9 @@ export default function HomeScreen() {
             size={24}
             color={colorScheme === "dark" ? "white" : "gold"}
           />
-          <Text className="font-bold">{user?.score.toLocaleString() || 0}</Text>
+          <Text className="font-bold mt-1">
+            {user.score.toLocaleString() || 0}
+          </Text>
         </View>
         <Pressable
           className="justify-center items-center size-12 bg-stone-100 active:bg-stone-200 dark:bg-stone-800 dark:active:bg-stone-900 rounded-lg"
@@ -96,15 +100,24 @@ export default function HomeScreen() {
       <View className="gap-4 w-full px-0 sm:px-24 lg:px-64">
         <TextButton
           text="Simple Sentences"
-          onPress={() => router.push("/simple-sentences")}
+          onPress={() => router.push("/(protected)/simple-sentences")}
         />
         <TextButton
           text="Story Mode"
-          onPress={() => router.push("/story-mode")}
+          onPress={() => router.push("/(protected)/story-mode")}
         />
         <TextButton
           text={`Talk to ${state.avatar}`}
-          onPress={() => router.push("/conversation-mode")}
+          onPress={() => router.push("/(protected)/conversation-mode")}
+        />
+        <TextButton
+          disabled={user.score < 100}
+          text={
+            user.score < 100
+              ? `Score ${100 - user.score} more points to unlock!`
+              : "Join or Challenge a Friend"
+          }
+          onPress={() => router.push("/(protected)/peer-connection")}
         />
       </View>
     </SafeAreaView>

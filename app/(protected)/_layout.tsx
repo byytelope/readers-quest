@@ -24,7 +24,7 @@ export default function ProtectedLayout() {
         headerShown: false,
         headerLargeTitle: true,
         headerLargeTitleShadowVisible: false,
-        headerTransparent: false,
+        headerTransparent: true,
         headerTintColor:
           colorScheme === "dark" ? Colors.dark.tint : Colors.light.tint,
         headerStyle: {
@@ -61,7 +61,6 @@ export default function ProtectedLayout() {
         name="story-reading"
         initialParams={{ story: {} }}
         options={{
-          headerShown: false,
           title: "Story Reading",
           presentation: "modal",
           headerBackVisible: false,
@@ -70,8 +69,25 @@ export default function ProtectedLayout() {
       <Stack.Screen
         name="conversation-mode"
         options={{
-          headerShown: false,
           title: "Conversation Mode",
+          presentation: "modal",
+          headerBackVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="peer-connection"
+        options={{
+          headerShown: true,
+          title: "Find a Peer",
+          presentation: "modal",
+          headerBackVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="peer-reading"
+        options={{
+          headerShown: false,
+          title: "Peer Reading",
           presentation: "modal",
           headerBackVisible: false,
         }}

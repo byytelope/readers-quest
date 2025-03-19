@@ -82,8 +82,8 @@ export default function ConversationScreen({
     [feedback],
   );
 
-  const handleStopRecording = async () => {
-    await stopRecording(
+  const handleStartRecording = async () => {
+    await record(
       conversation.child[currentSentenceIndex],
       "http://192.168.100.170:8000/grade",
       // "http://localhost:8000/grade",
@@ -112,6 +112,10 @@ export default function ConversationScreen({
     );
   };
 
+  const handleStopRecording = async () => {
+    await stopRecording();
+  };
+
   const handleFinish = async () => {
     if (user) {
       const newScore = user?.score + scores.reduce((i, j) => i + j, 0);
@@ -129,7 +133,7 @@ export default function ConversationScreen({
 
   return (
     <SafeAreaView className="p-4 justify-between flex-1 bg-white dark:bg-black">
-      <StatusBar style="light" />
+      <StatusBar style="light" animated />
       {currentSentenceIndex === conversation.child.length ? (
         <>
           <View className="gap-4 items-center justify-center flex-1">
@@ -283,7 +287,7 @@ export default function ConversationScreen({
                       ? "Checking..."
                       : "Hold and Speak"
                 }
-                onPressIn={record}
+                onPressIn={handleStartRecording}
                 onPressOut={handleStopRecording}
                 disabled={isUploading || animalSpeaking}
                 recording={recording !== undefined}

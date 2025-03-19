@@ -73,7 +73,11 @@ function RootLayoutNav() {
         >
           <GestureHandlerRootView>
             <BottomSheetModalProvider>
-              <StatusBar translucent={true} backgroundColor={"transparent"} />
+              <StatusBar
+                translucent={true}
+                backgroundColor={"transparent"}
+                animated
+              />
               <Stack
                 screenOptions={{
                   headerShown: false,

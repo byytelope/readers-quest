@@ -1,5 +1,6 @@
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import {
   Alert,
@@ -72,6 +73,7 @@ export default function SignUpScreen() {
       className="flex-1 justify-start gap-8 p-4 bg-white dark:bg-black"
       edges={["bottom"]}
     >
+      <StatusBar style="light" animated />
       <KeyboardAvoidingView
         className="flex-1 gap-6"
         behavior={Platform.OS === "ios" ? "padding" : "height"}

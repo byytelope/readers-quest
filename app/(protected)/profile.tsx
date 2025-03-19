@@ -1,5 +1,7 @@
 import { useHeaderHeight } from "@react-navigation/elements";
 import { usePreventRemove } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -20,6 +22,7 @@ import { useSupabase } from "@/utils/supabaseContext";
 
 export default function ProfileScreen() {
   const { user, updateUser, signOut } = useSupabase();
+  const navigation = useNavigation();
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
 
@@ -28,7 +31,6 @@ export default function ProfileScreen() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Load current user data
   useEffect(() => {
     if (user) {
       setNameText(user.name || "");
@@ -36,7 +38,6 @@ export default function ProfileScreen() {
     }
   }, [user]);
 
-  // Track changes
   useEffect(() => {
     if (user) {
       const nameChanged = nameText !== user.name && nameText !== "";
@@ -70,7 +71,7 @@ export default function ProfileScreen() {
     }
   };
 
-  usePreventRemove(hasChanges, () => {
+  usePreventRemove(hasChanges, ({ data }) => {
     Alert.alert(
       "Unsaved Changes",
       "You have unsaved changes. Are you sure you want to leave?",
@@ -80,10 +81,10 @@ export default function ProfileScreen() {
           text: "Discard Changes",
           style: "destructive",
           onPress: () => {
-            // Reset form and allow navigation
             setNameText(user?.name || "");
             setAgeText(user?.age ? String(user.age) : "");
             setHasChanges(false);
+            navigation.dispatch(data.action);
           },
         },
       ],
@@ -95,8 +96,9 @@ export default function ProfileScreen() {
       className="flex-1 justify-start gap-8 p-4 bg-white dark:bg-black"
       edges={["bottom"]}
     >
+      <StatusBar style="light" animated />
       <KeyboardAvoidingView
-        className="flex-1 gap-6 justify-between"
+        className="flex-1 gap-6"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={headerHeight + insets.bottom}
       >
@@ -104,7 +106,6 @@ export default function ProfileScreen() {
           className="flex-1"
           contentInsetAdjustmentBehavior="automatic"
         >
-          <Text className="text-xl font-bold mb-4">Edit Your Profile</Text>
           <View className="bg-stone-100 dark:bg-stone-800 rounded-lg p-4 mb-6">
             <Text className="text-sm text-stone-500 dark:text-stone-400">
               Your Reading Points

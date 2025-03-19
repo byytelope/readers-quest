@@ -75,11 +75,11 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
     [feedback],
   );
 
-  const handleStopRecording = async () => {
-    await stopRecording(
+  const handleStartRecording = async () => {
+    await record(
       content[currentSentenceIndex],
-      // "http://192.168.100.170:8000/grade",
-      "http://localhost:8000/grade",
+      "http://192.168.100.170:8000/grade",
+      // "http://localhost:8000/grade",
       (res) => {
         updateState("frustrated", res.frustrated);
         if (res.grade >= 0.8) {
@@ -94,6 +94,10 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
         }
       },
     );
+  };
+
+  const handleStopRecording = async () => {
+    await stopRecording();
   };
 
   const handleFinish = async () => {
@@ -113,7 +117,7 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
 
   return (
     <SafeAreaView className="p-4 justify-between flex-1 bg-white dark:bg-black">
-      <StatusBar style="light" />
+      <StatusBar style="light" animated />
       {currentSentenceIndex === content.length ? (
         <>
           <View className="gap-4 items-center justify-center flex-1">
@@ -254,7 +258,7 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
                       ? "Checking..."
                       : "Hold and Speak"
                 }
-                onPressIn={record}
+                onPressIn={handleStartRecording}
                 onPressOut={handleStopRecording}
                 disabled={isUploading}
                 recording={recording !== undefined}

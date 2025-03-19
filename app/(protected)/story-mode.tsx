@@ -21,7 +21,7 @@ export default function StoryModeScreen() {
 
   const handleStartReading = () => {
     router.push({
-      pathname: "/story-reading",
+      pathname: "/(protected)/story-reading",
       params: { story: JSON.stringify(stories[selectedTheme]) },
     });
   };

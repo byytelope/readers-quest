@@ -1,11 +1,13 @@
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  View,
 } from "react-native";
 import {
   SafeAreaView,
@@ -14,7 +16,6 @@ import {
 
 import TextButton from "@/components/TextButton";
 import TextField from "@/components/TextField";
-import { View } from "@/components/Themed";
 import { isStrongPassword, isValidEmail } from "@/utils/helpers";
 import { useSupabase } from "@/utils/supabaseContext";
 
@@ -64,6 +65,7 @@ export default function SignInScreen() {
       className="flex-1 justify-start gap-8 p-4 bg-white dark:bg-black"
       edges={["bottom"]}
     >
+      <StatusBar style="light" animated />
       <KeyboardAvoidingView
         className="flex-1 gap-6"
         behavior={Platform.OS === "ios" ? "padding" : "height"}

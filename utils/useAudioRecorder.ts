@@ -1,5 +1,5 @@
 import { Audio } from "expo-av";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   type ApiResult,
@@ -9,16 +9,43 @@ import {
 } from "@/utils/types";
 
 export function useAudioRecorder() {
-  const [recording, setRecording] = useState<Audio.Recording>();
+  const [recordingObject, setRecordingObject] = useState<Audio.Recording>();
   const [isUploading, setIsUploading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [hookParams, setHookParams] = useState<{
+    expectedText: string;
+    apiUrl: string;
+    resultCallback: (result: ApiResult) => void;
+  } | null>();
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [scores, setScores] = useState<number[]>([]);
   const [message, setMessage] = useState(
     "Hold the button and read the sentence!",
   );
 
-  const record = async () => {
+  useEffect(() => {
+    const checkRecordingDuration = async () => {
+      if (recordingObject && isRecording) {
+        const status = await recordingObject.getStatusAsync();
+        if (status.isRecording && status.durationMillis >= 5000) {
+          await stopRecording();
+        }
+      }
+    };
+
+    const interval = setInterval(checkRecordingDuration, 100);
+    return () => clearInterval(interval);
+  }, [recordingObject, isRecording]);
+
+  const record = async (
+    expectedText: string,
+    apiUrl: string,
+    resultCallback: (result: ApiResult) => void,
+  ) => {
+    setHookParams({ expectedText, apiUrl, resultCallback });
+
     try {
+      setIsRecording(true);
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -26,36 +53,31 @@ export function useAudioRecorder() {
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY,
       );
-      setRecording(recording);
+      setRecordingObject(recording);
     } catch (err) {
+      setIsRecording(false);
       console.error("Failed to start recording", err);
     }
   };
 
-  const stopRecording = async (
-    expectedText: string,
-    apiUrl: string,
-    resultCallback: (result: ApiResult) => void,
-  ) => {
-    try {
-      await recording?.stopAndUnloadAsync();
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-      });
-      const uri = recording?.getURI() ?? "";
-      setRecording(undefined);
-      await callApi(uri, expectedText, apiUrl, resultCallback);
-    } catch (err) {
-      console.error(err);
+  const stopRecording = async () => {
+    if (isRecording) {
+      try {
+        await recordingObject?.stopAndUnloadAsync();
+        await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+        setIsRecording(false);
+
+        const uri = recordingObject?.getURI() ?? "";
+        setRecordingObject(undefined);
+
+        await callApi(uri);
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
-  const callApi = async (
-    uri: string,
-    expectedText: string,
-    apiUrl: string,
-    resultCallback: (result: ApiResult) => void,
-  ) => {
+  const callApi = async (uri: string) => {
     try {
       setIsUploading(true);
       const fileName = uri.split("/").pop() || "audio.m4a";
@@ -68,9 +90,9 @@ export function useAudioRecorder() {
 
       // biome-ignore lint/suspicious/noExplicitAny: bruh
       formData.append("audio", audio_file as any);
-      formData.append("expected_text", expectedText);
+      formData.append("expected_text", hookParams!.expectedText);
 
-      const response = await fetch(apiUrl, {
+      const response = await fetch(hookParams!.apiUrl, {
         method: "POST",
         headers: { "Content-Type": "multipart/form-data" },
         body: formData,
@@ -90,7 +112,8 @@ export function useAudioRecorder() {
           failingMessages[Math.floor(Math.random() * failingMessages.length)],
         );
       }
-      resultCallback(result);
+
+      hookParams!.resultCallback(result);
       setIsUploading(false);
     } catch (error) {
       setIsUploading(false);
@@ -109,7 +132,7 @@ export function useAudioRecorder() {
   return {
     record,
     stopRecording,
-    recording,
+    recording: recordingObject,
     isUploading,
     feedback,
     setFeedback,
