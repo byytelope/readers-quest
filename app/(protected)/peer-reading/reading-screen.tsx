@@ -41,7 +41,7 @@ export default function PeerReadingScreen() {
 	const { state } = useAppContext();
 
 	const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
-	const [peerTurn, setPeerTurn] = useState(!isHost);
+	const [peerTurn, setPeerTurn] = useState(isHost === "false"); // Keep this initial state
 	const [peerStatus, setPeerStatus] = useState("waiting");
 	const [peerName, setPeerName] = useState("Peer");
 	const [readingComplete, setReadingComplete] = useState(false);
@@ -85,6 +85,15 @@ export default function PeerReadingScreen() {
 			.on("broadcast", { event: "peer-joined" }, ({ payload }) => {
 				if (payload.userId !== userId) {
 					setPeerConnected(true);
+
+					// Send current state to the newly joined peer
+					if (isHost === "true") {
+						notifyPeer({
+							isMyTurn: false, // It's host's turn initially
+							currentIndex: currentSentenceIndex,
+							status: "waiting",
+						});
+					}
 				}
 			})
 			.subscribe();
@@ -101,7 +110,7 @@ export default function PeerReadingScreen() {
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, [sessionCode, userId, isHost]);
+	}, [sessionCode, userId, isHost, currentSentenceIndex]);
 
 	// Send updates to peer
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -174,7 +183,9 @@ export default function PeerReadingScreen() {
 		} else {
 			const nextIndex = currentSentenceIndex + 1;
 			setCurrentSentenceIndex(nextIndex);
-			setPeerTurn(true);
+			setPeerTurn(true); // Change your state first
+
+			// Then notify peer that it's their turn
 			notifyPeer({
 				isMyTurn: true,
 				currentIndex: nextIndex,
