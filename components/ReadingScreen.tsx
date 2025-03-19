@@ -78,7 +78,8 @@ export default function ReadingScreen({ content }: ReadingScreenProps) {
   const handleStartRecording = async () => {
     await record(
       content[currentSentenceIndex],
-      "http://192.168.100.170:8000/grade",
+      "http://172.20.10.4:8000/grade",
+      // "http://192.168.100.170:8000/grade",
       // "http://localhost:8000/grade",
       (res) => {
         updateState("frustrated", res.frustrated);

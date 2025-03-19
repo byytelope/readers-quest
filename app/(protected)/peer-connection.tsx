@@ -23,7 +23,6 @@ export default function PeerConnectionScreen() {
   const [isCreating, setIsCreating] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
 
-  // Generate a random 6-digit code
   const generateSessionCode = () => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setSessionCode(code);
@@ -36,7 +35,6 @@ export default function PeerConnectionScreen() {
       return;
     }
 
-    // Pass the session code to the reading screen
     router.push({
       pathname: "/(protected)/peer-reading",
       params: {
