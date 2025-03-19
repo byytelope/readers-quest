@@ -75,21 +75,11 @@ export default function ProtectedLayout() {
         }}
       />
       <Stack.Screen
-        name="peer-connection"
-        options={{
-          headerShown: true,
-          title: "Find a Peer",
-          presentation: "modal",
-          headerBackVisible: false,
-        }}
-      />
-      <Stack.Screen
         name="peer-reading"
         options={{
-          headerShown: false,
           title: "Peer Reading",
           presentation: "modal",
-          headerBackVisible: false,
+          headerShown: false,
         }}
       />
     </Stack>

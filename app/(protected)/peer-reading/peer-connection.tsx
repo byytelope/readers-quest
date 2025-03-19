@@ -36,7 +36,7 @@ export default function PeerConnectionScreen() {
     }
 
     router.push({
-      pathname: "/(protected)/peer-reading",
+      pathname: "/(protected)/peer-reading/reading-screen",
       params: {
         sessionCode: sessionCode,
         isHost: +isCreating,

@@ -117,7 +117,9 @@ export default function HomeScreen() {
               ? `Score ${100 - user.score} more points to unlock!`
               : "Join or Challenge a Friend"
           }
-          onPress={() => router.push("/(protected)/peer-connection")}
+          onPress={() =>
+            router.push("/(protected)/peer-reading/peer-connection")
+          }
         />
       </View>
     </SafeAreaView>
