@@ -3,7 +3,6 @@ import {
   type PostgrestError,
   type Session,
 } from "@supabase/supabase-js";
-import { SplashScreen } from "expo-router";
 import { createContext, useContext, useEffect, useState } from "react";
 
 import { supabase } from "@/utils/supabase";
@@ -129,7 +128,6 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
 
       await handleSessionChange(data.session);
       setInitialized(true);
-      await SplashScreen.hideAsync();
     };
 
     getInitialSession();

@@ -7,7 +7,7 @@ import {
 import { Audio } from "expo-av";
 import "expo-dev-client";
 import * as NavigationBar from "expo-navigation-bar";
-import { SplashScreen, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { AppState, Platform, useColorScheme } from "react-native";
@@ -22,8 +22,6 @@ import Colors from "@/constants/Colors";
 import { AppProvider } from "@/utils/appContext";
 import { supabase } from "@/utils/supabase";
 import { SupabaseProvider } from "@/utils/supabaseContext";
-
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [permissionResponse, requestPermission] = Audio.usePermissions();

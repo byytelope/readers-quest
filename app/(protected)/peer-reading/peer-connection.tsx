@@ -10,7 +10,6 @@ import {
 
 import TextButton from "@/components/TextButton";
 import TextField from "@/components/TextField";
-import { Text } from "@/components/Themed";
 import { useSupabase } from "@/utils/supabaseContext";
 
 export default function PeerConnectionScreen() {
@@ -20,13 +19,10 @@ export default function PeerConnectionScreen() {
   const { user } = useSupabase();
 
   const [sessionCode, setSessionCode] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [errorText, setErrorText] = useState<string | null>(null);
+  const [errorText, setErrorText] = useState<string>();
 
   const generateSessionCode = () => {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setSessionCode(code);
-    setIsCreating(true);
+    return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
   const handleJoinSession = async () => {
@@ -39,7 +35,7 @@ export default function PeerConnectionScreen() {
       pathname: "/(protected)/peer-reading/reading-screen",
       params: {
         sessionCode: sessionCode,
-        isHost: isCreating.toString(),
+        isHost: "false",
         userId: user?.id || "",
       },
     });
@@ -58,11 +54,6 @@ export default function PeerConnectionScreen() {
           contentInsetAdjustmentBehavior="automatic"
         >
           <View className="gap-6">
-            <Text className="pr-1">
-              {isCreating
-                ? "Share this code with your peer to begin reading together"
-                : "Enter a 6-digit session code to join a peer's reading session"}
-            </Text>
             <TextField
               label="Session Code"
               keyboardType="number-pad"
@@ -72,22 +63,25 @@ export default function PeerConnectionScreen() {
               value={sessionCode}
               placeholder="Enter 6-digit code"
               maxLength={6}
+              error={errorText}
             />
-            {errorText && <Text className="text-red-500 mt-2">{errorText}
-            </Text>}
           </View>
         </ScrollView>
         <View className="gap-4">
+          <TextButton text="Join Session" onPress={handleJoinSession} />
           <TextButton
-            text={isCreating ? "Start Session" : "Join Session"}
-            onPress={handleJoinSession}
+            text="Create New Session"
+            onPress={() =>
+              router.push({
+                pathname: "/peer-reading/reading-screen",
+                params: {
+                  sessionCode: generateSessionCode(),
+                  isHost: "true",
+                  userId: user?.id || "",
+                },
+              })
+            }
           />
-          {!isCreating && (
-            <TextButton
-              text="Create New Session"
-              onPress={generateSessionCode}
-            />
-          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

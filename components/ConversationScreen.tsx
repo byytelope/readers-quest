@@ -3,7 +3,7 @@ import { usePreventRemove } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import * as Speech from "expo-speech";
 import { StatusBar } from "expo-status-bar";
-import LottieView from "lottie-react-native";
+import type LottieView from "lottie-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -18,11 +18,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import TextButton from "@/components/TextButton";
 import { Text, View } from "@/components/Themed";
 import { useAppContext } from "@/utils/appContext";
-import { getAward, getFriendlyFeedback } from "@/utils/helpers";
+import { getFriendlyFeedback } from "@/utils/helpers";
 import { useSupabase } from "@/utils/supabaseContext";
 import type { ConversationContent } from "@/utils/types";
 import { useAudioRecorder } from "@/utils/useAudioRecorder";
 import { AuthError } from "@supabase/supabase-js";
+import ConfettiView from "./ConfettiView";
 
 interface ConversationScreenProps {
   conversation: ConversationContent;
@@ -53,11 +54,14 @@ export default function ConversationScreen({
     message,
   } = useAudioRecorder();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: bruh
   useEffect(() => {
-    if (getGrade(conversation.child.length) >= 0.5) {
-      animationRef.current?.play();
+    if (currentSentenceIndex === conversation.child.length) {
+      if (getGrade(conversation.child.length) >= 0.5) {
+        animationRef.current?.play();
+      }
     }
-  }, [conversation.child.length, getGrade]);
+  }, [currentSentenceIndex]);
 
   usePreventRemove(
     !(currentSentenceIndex === conversation.child.length),
@@ -134,33 +138,13 @@ export default function ConversationScreen({
     <SafeAreaView className="p-4 justify-between flex-1 bg-white dark:bg-black">
       <StatusBar style="light" animated />
       {currentSentenceIndex === conversation.child.length ? (
-        <>
-          <View className="gap-4 items-center justify-center flex-1">
-            <LottieView
-              ref={animationRef}
-              source={require("@/assets/lottie/confetti.json")}
-              style={{
-                width: "100%",
-                height: "100%",
-                position: "absolute",
-                backgroundColor: "transparent",
-                display:
-                  getGrade(conversation.child.length) >= 0.5 ? "flex" : "none",
-              }}
-              autoPlay={false}
-            />
-            <Text className="text-6xl pt-2">
-              {getAward(getGrade(conversation.child.length)).emoji}
-            </Text>
-            <Text className="text-4xl font-bold text-center w-full">
-              {getAward(getGrade(conversation.child.length)).message}
-            </Text>
-            <Text className="text-2xl text-center">
-              Your total score is {scores.reduce((i, j) => i + j, 0)} points.
-            </Text>
-          </View>
-          <TextButton text="Finish" onPress={handleFinish} />
-        </>
+        <ConfettiView
+          ref={animationRef}
+          content={conversation.child}
+          getGrade={getGrade}
+          handleFinish={handleFinish}
+          scores={scores}
+        />
       ) : (
         <>
           <View className="gap-4">

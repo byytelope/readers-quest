@@ -12,14 +12,12 @@ export default function PeerReadingLayout() {
       initialRouteName="peer-connection"
       screenOptions={{
         headerLargeTitle: true,
-        headerTintColor: colorScheme === "dark"
-          ? Colors.dark.tint
-          : Colors.light.tint,
+        headerTintColor:
+          colorScheme === "dark" ? Colors.dark.tint : Colors.light.tint,
         headerTransparent: true,
         headerStyle: {
-          backgroundColor: colorScheme === "dark"
-            ? DarkTheme.colors.background
-            : "white",
+          backgroundColor:
+            colorScheme === "dark" ? DarkTheme.colors.background : "white",
         },
       }}
     >
