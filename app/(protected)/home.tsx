@@ -103,18 +103,28 @@ export default function HomeScreen() {
           onPress={() => router.push("/(protected)/simple-sentences")}
         />
         <TextButton
-          text="Story Mode"
-          onPress={() => router.push("/(protected)/story-mode")}
-        />
-        <TextButton
-          text={`Talk to ${state.avatar}`}
-          onPress={() => router.push("/(protected)/conversation-mode")}
-        />
-        <TextButton
           disabled={user.score < 100}
           text={
             user.score < 100
               ? `Score ${100 - user.score} more points to unlock!`
+              : "Story Mode"
+          }
+          onPress={() => router.push("/(protected)/story-mode")}
+        />
+        <TextButton
+          disabled={user.score < 200}
+          text={
+            user.score < 200
+              ? `Score ${200 - user.score} more points to unlock!`
+              : `Talk to ${state.avatar}`
+          }
+          onPress={() => router.push("/(protected)/conversation-mode")}
+        />
+        <TextButton
+          disabled={user.score < 300}
+          text={
+            user.score < 300
+              ? `Score ${300 - user.score} more points to unlock!`
               : "Join or Challenge a Friend"
           }
           onPress={() =>

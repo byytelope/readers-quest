@@ -1,6 +1,6 @@
 import { useHeaderHeight } from "@react-navigation/elements";
 import { usePreventRemove } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import {
@@ -24,27 +24,35 @@ import { useSupabase } from "@/utils/supabaseContext";
 
 export default function TestScreen() {
   const { updateUser } = useSupabase();
+  const { userId } = useLocalSearchParams<{ userId: string }>();
   const router = useRouter();
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
 
   const [nameText, setNameText] = useState("");
   const [ageText, setAgeText] = useState("");
-  const [disabilityCheck, setDisabilityCheck] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [disabilityCheck, setDisabilityCheck] = useState(false);
 
   const handleSubmit = async () => {
-    const error = await updateUser({
-      age: Number.parseInt(ageText),
-      name: nameText,
-      has_disabilities: disabilityCheck,
-    });
+    const error = await updateUser(
+      {
+        age: Number.parseInt(ageText),
+        name: nameText,
+        has_disabilities: disabilityCheck,
+      },
+      userId,
+    );
 
     if (!error) {
-      setErrorText(null);
+      Alert.alert(
+        "Almost there!",
+        "Please check your email to confirm your account before signing in.",
+      );
       router.replace("/(protected)/home");
     } else {
       setErrorText(error.message);
+      Alert.alert(error.message);
     }
   };
 

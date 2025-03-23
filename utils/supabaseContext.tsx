@@ -2,6 +2,7 @@ import {
   AuthError,
   type PostgrestError,
   type Session,
+  type User as SupabaseUser,
 } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -13,11 +14,15 @@ type SupabaseContextProps = {
   session: Session | null;
   user: User | null;
   initialized: boolean;
-  signUp: (email: string, password: string) => Promise<AuthError | null>;
+  signUp: (
+    email: string,
+    password: string,
+  ) => Promise<AuthError | SupabaseUser | null>;
   signIn: (email: string, password: string) => Promise<AuthError | null>;
   signOut: () => Promise<void>;
   updateUser: (
     userInfo: Omit<TablesUpdate<"user_info">, "id">,
+    id?: string,
   ) => Promise<AuthError | PostgrestError | null>;
 };
 
@@ -53,6 +58,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
 
     if (error) {
       console.error("Error fetching user info:", error);
+      await signOut();
       return null;
     }
 
@@ -70,16 +76,20 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     }
   };
 
-  const signUp = async (
-    email: string,
-    password: string,
-  ): Promise<AuthError | null> => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string) => {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    return error;
+    if (error) {
+      return error;
+    }
+
+    return user;
   };
 
   const signIn = async (email: string, password: string) => {
@@ -101,15 +111,16 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
 
   const updateUser = async (
     userInfo: Omit<TablesUpdate<"user_info">, "id">,
+    id?: string,
   ) => {
-    if (!session) {
+    if (!id && !session) {
       return new AuthError("User not logged in.", 403, "-1");
     }
 
     const { data, error } = await supabase
       .from("user_info")
-      .upsert({ id: session!.user.id, ...userInfo })
-      .eq("id", session!.user.id)
+      .upsert({ id: id ?? session!.user.id, ...userInfo })
+      .eq("id", id ?? session!.user.id)
       .select()
       .single();
 

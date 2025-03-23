@@ -26,28 +26,21 @@ export default function SignUpScreen() {
   const insets = useSafeAreaInsets();
 
   const [emailText, setEmailText] = useState("");
-  const [confirmEmailText, setConfirmEmailText] = useState("");
   const [passwordText, setPasswordText] = useState("");
+  const [confirmPasswordText, setConfirmPasswordText] = useState("");
 
   const [emailError, setEmailError] = useState<string>();
-  const [confirmEmailError, setConfirmEmailError] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string>();
 
   const handleSubmit = async () => {
     let hasError = false;
 
-    if (!isValidEmail(emailText) || !isValidEmail(confirmEmailText)) {
+    if (!isValidEmail(emailText)) {
       setEmailError("Invalid email");
       hasError = true;
     } else {
       setEmailError(undefined);
-    }
-
-    if (emailText !== confirmEmailText) {
-      setConfirmEmailError("Emails do not match");
-      hasError = true;
-    } else {
-      setConfirmEmailError(undefined);
     }
 
     if (!isStrongPassword(passwordText)) {
@@ -57,13 +50,24 @@ export default function SignUpScreen() {
       setPasswordError(undefined);
     }
 
-    if (!hasError) {
-      const error = await signUp(emailText, passwordText);
+    if (passwordText !== confirmPasswordText) {
+      setConfirmPasswordError("Passwords do not match");
+      hasError = true;
+    } else {
+      setConfirmPasswordError(undefined);
+    }
 
-      if (error) {
-        Alert.alert(error.message);
-      } else {
-        router.push("/sign-up/child-info");
+    if (!hasError) {
+      const res = await signUp(emailText, passwordText);
+
+      if (res && "message" in res) {
+        console.error(res);
+        Alert.alert(res.message);
+      } else if (res && "id" in res) {
+        router.push({
+          pathname: "/sign-up/child-info",
+          params: { userId: res.id },
+        });
       }
     }
   };
@@ -94,15 +98,6 @@ export default function SignUpScreen() {
               error={emailError}
             />
             <TextField
-              label="Confirm Email"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              autoCorrect={false}
-              onChangeText={setConfirmEmailText}
-              error={confirmEmailError}
-            />
-            <TextField
               label="Password"
               autoCapitalize="none"
               autoComplete="new-password"
@@ -110,6 +105,15 @@ export default function SignUpScreen() {
               secureTextEntry
               onChangeText={setPasswordText}
               error={passwordError}
+            />
+            <TextField
+              label="Confirm Password"
+              autoCapitalize="none"
+              autoComplete="current-password"
+              autoCorrect={false}
+              secureTextEntry
+              onChangeText={setConfirmPasswordText}
+              error={confirmPasswordError}
             />
           </View>
         </ScrollView>

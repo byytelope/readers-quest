@@ -8,11 +8,11 @@ import type LottieView from "lottie-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
-  Text as DefaultText,
-  View as DefaultView,
   Pressable,
   ScrollView,
+  Text as DefaultText,
   useColorScheme,
+  View as DefaultView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -46,6 +46,7 @@ export default function PeerReadingScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const animationRef = useRef<LottieView>(null);
+  const sessionEndedByPeerRef = useRef(false);
   const { user, updateUser } = useSupabase();
 
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
@@ -119,6 +120,17 @@ export default function PeerReadingScreen() {
       .on("broadcast", { event: "session-complete" }, () => {
         setReadingComplete(true);
       })
+      .on<{ name: string }>(
+        "broadcast",
+        { event: "session-ended" },
+        ({ payload }) => {
+          console.log(`Session ended by ${payload.name}`);
+          Alert.alert(`Session ended by ${payload.name}`);
+          sessionEndedByPeerRef.current = true;
+          setReadingComplete(true);
+          router.dismissTo("/(protected)/home");
+        },
+      )
       .on<{ name: string }>(
         "broadcast",
         { event: "peer-joined" },
@@ -233,15 +245,27 @@ export default function PeerReadingScreen() {
   );
 
   usePreventRemove(!readingComplete, ({ data }) => {
+    if (sessionEndedByPeerRef.current) {
+      return navigation.dispatch(data.action);
+    }
+
     Alert.alert(
-      "Finish conversation?",
-      "You will lose your progress if you go back!",
+      "Finish session?",
+      "You and your peer will lose your progress if you go back!",
       [
         { text: "Stay", style: "cancel", onPress: () => {} },
         {
           text: "Finish",
           style: "destructive",
-          onPress: () => navigation.dispatch(data.action),
+          onPress: () => {
+            supabase.channel(`reading-session-${sessionCode}`).send({
+              type: "broadcast",
+              event: "session-ended",
+              payload: { name: user?.name },
+            });
+
+            navigation.dispatch(data.action);
+          },
         },
       ],
     );
@@ -324,7 +348,9 @@ export default function PeerReadingScreen() {
           alwaysBounceVertical={false}
         >
           <DefaultText
-            className={`text-2xl font-extrabold text-lime-700 dark:text-lime-500 pb-4 ${isMyTurn ? "" : "hidden"}`}
+            className={`text-2xl font-extrabold text-lime-700 dark:text-lime-500 pb-4 ${
+              isMyTurn ? "" : "hidden"
+            }`}
           >
             Say:
           </DefaultText>

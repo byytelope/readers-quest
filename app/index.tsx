@@ -11,7 +11,7 @@ import { useSupabase } from "@/utils/supabaseContext";
 export default function WelcomeScreen() {
   const router = useRouter();
   const segments = useSegments();
-  const { session, signIn } = useSupabase();
+  const { session } = useSupabase();
 
   useEffect(() => {
     if (session && segments[0] == null) {
@@ -34,16 +34,6 @@ export default function WelcomeScreen() {
         </Text>
       </DefaultView>
       <View className="w-full gap-4 px-0 sm:px-24 lg:px-64">
-        <TextButton
-          text="Login"
-          onPress={async () => {
-            const error = await signIn("shadhanm@gmail.com", "Password@123");
-
-            if (error) {
-              console.log(error.message);
-            }
-          }}
-        />
         <TextButton text="Sign In" onPress={() => router.push("/sign-in")} />
         <TextButton text="Sign Up" onPress={() => router.push("/sign-up")} />
       </View>
